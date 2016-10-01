@@ -79,9 +79,9 @@ class Settings:
 
 class Const:
     SETTINGS_EXTENSION = "json"
-    SETTINGS_FILENAME = "SQLToolsSettings.{0}".format(SETTINGS_EXTENSION)
-    CONNECTIONS_FILENAME = "SQLToolsConnections.{0}".format(SETTINGS_EXTENSION)
-    USER_QUERIES_FILENAME = "SQLToolsSavedQueries.{0}".format(
+    SETTINGS_FILENAME = "cuda_sqltools_settings.{0}".format(SETTINGS_EXTENSION)
+    CONNECTIONS_FILENAME = "cuda_sqltools_connections.{0}".format(SETTINGS_EXTENSION)
+    USER_QUERIES_FILENAME = "cuda_sqltools_savedqueries.{0}".format(
         SETTINGS_EXTENSION)
 
 
