@@ -47,7 +47,7 @@ class ST:
 
 class Command:
     def executeQuery(self):
-        if ST.conn = None:
+        if not ST.conn:
             self.showConnectionMenu()
 
         # continue execution
