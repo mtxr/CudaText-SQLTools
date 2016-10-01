@@ -104,9 +104,9 @@ class Connection:
 
         if cli_path is None:
             msg_box((
-                "'{0}' could not be found by Sublime Text.\n\n" +
+                "'{0}' could not be found by Cuda Text.\n\n" +
                 "Please set the '{0}' path in your SQLTools settings " +
-                "before continue.").format(self.cli), MB_OK)
+                "before continue.").format(self.cli), MB_OK + MB_ICONWARNING)
             return
 
         self.rowsLimit = SettingsManager.asJson(
