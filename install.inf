@@ -1,0 +1,78 @@
+[info]
+title=SQL Tools
+desc=SQL Tools is a swiss army knife for your SQL databases
+type=cudatext-plugin
+subdir=cuda_sqltools
+homepage=
+
+[item1]
+section=commands
+caption=SQL Tools\Execute
+method=executeQuery
+
+[item2]
+section=commands
+caption=SQL Tools\History
+method=showHistory
+
+[item3]
+section=commands
+caption=SQL Tools\Function description
+method=describeFunction
+
+[item4]
+section=commands
+caption=SQL Tools\Save query
+method=saveQuery
+
+[item5]
+section=commands
+caption=SQL Tools\Select connection
+method=selectConnection
+
+[item6]
+section=commands
+caption=SQL Tools\Table description
+method=describeTable
+
+[item7]
+section=commands
+caption=SQL Tools\Remove saved query
+method=deleteSavedQuery
+
+[item8]
+section=commands
+caption=SQL Tools\Show table records
+method=showRecords
+
+[item9]
+section=commands
+caption=SQL Tools\Format current SQL file
+method=formatQuery
+
+[item10]
+section=commands
+caption=SQL Tools\List and open saved queries
+method=showSavedQueries
+
+[item11]
+section=commands
+caption=SQL Tools\List and run saved queries
+method=runSavedQuery
+
+[item12]
+section=commands
+caption=SQL Tools\-
+method=nnn
+
+[item13]
+section=commands
+caption=SQL Tools\Setup connections
+method=editConnections
+
+[item14]
+section=commands
+caption=SQL Tools\Setup
+method=editSettings
+
+

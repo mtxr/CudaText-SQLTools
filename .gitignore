@@ -1,0 +1,6 @@
+__pychace__
+.idea/
+.DS_Store
+*.pyc
+*.py~
+*.sublime-workspace
