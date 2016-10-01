@@ -26,13 +26,11 @@
         "indent_width"    : 4,
         "reindent"        : true
     },
-    /**
-     * Client options for you SGBD.
-     * In this file, the section cli has the names you can use here. Eg: "pgsql": "psql"
-     * So here, you must have "psql with the same sections listed bellow (options, before, args and queries)"
-     *
-     * Avoid changing the brackets content in "args"
-     */
+     // Client options for you SGBD.
+     // In this file, the section cli has the names you can use here. Eg: "pgsql": "psql"
+     // So here, you must have "psql with the same sections listed bellow (options, before, args and queries)"
+     //
+     // Avoid changing the brackets content in "args"
     "cli_options": {
         "pgsql": {
             "options": [],
