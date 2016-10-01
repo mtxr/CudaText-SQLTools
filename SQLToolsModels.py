@@ -2,40 +2,22 @@ VERSION = "v0.0.1"
 
 import re
 import os
-import shutil
+import sys
 import json
+
+dirpath = os.path.dirname(__file__)
+if dirpath not in sys.path:
+    sys.path.append(dirpath)
 
 from cudatext import *
 
-# Regular expression for comments
-comment_re = re.compile(
-    '(^)?[^\S\n]*/(?:\*(.*?)\*/[^\S\n]*|/[^\n]*)($)?',
-    re.DOTALL | re.MULTILINE
-)
+import threading
+import signal
+import shlex
+import subprocess
+import shutil
+import sqlparse
 
-def parse_json(filename):
-    """ Parse a JSON file
-        First remove comments and then use the json module package
-        Comments look like :
-            // ...
-        or
-            /*
-            ...
-            */
-    """
-
-    with open(filename) as f:
-        content = ''.join(f.readlines())
-
-        ## Looking for comments
-        match = comment_re.search(content)
-        while match:
-            # single line comment
-            content = content[:match.start()] + content[match.end():]
-            match = comment_re.search(content)
-
-        # Return json file
-        return json.loads(content)
 
 class SettingsManager:
     @staticmethod
@@ -51,7 +33,8 @@ class SettingsManager:
 
     @staticmethod
     def asJson(file):
-        return parse_json(SettingsManager.file(file))
+        return Utils.parseJson(SettingsManager.file(file))
+
 
 class Settings:
 
@@ -77,10 +60,13 @@ class Settings:
 
         return connections
 
+
 class Const:
     SETTINGS_EXTENSION = "json"
-    SETTINGS_FILENAME = "cuda_sqltools_settings.{0}".format(SETTINGS_EXTENSION)
-    CONNECTIONS_FILENAME = "cuda_sqltools_connections.{0}".format(SETTINGS_EXTENSION)
+    SETTINGS_FILENAME = "cuda_sqltools_settings.{0}".format(
+        SETTINGS_EXTENSION)
+    CONNECTIONS_FILENAME = "cuda_sqltools_connections.{0}".format(
+        SETTINGS_EXTENSION)
     USER_QUERIES_FILENAME = "cuda_sqltools_savedqueries.{0}".format(
         SETTINGS_EXTENSION)
 
@@ -104,7 +90,7 @@ class Connection:
 
         if cli_path is None:
             msg_box((
-                "'{0}' could not be found by Cuda Text.\n\n" +
+                "'{0}' could not be found by CudaText.\n\n" +
                 "Please set the '{0}' path in your SQLTools settings " +
                 "before continue.").format(self.cli), MB_OK + MB_ICONWARNING)
             return
@@ -138,113 +124,241 @@ class Connection:
     def toQuickPanel(self):
         return [self.name, self._info()]
 
-    # @staticmethod
-    # def killCommandAfterTimeout(command):
-    #     timeout = SettingsManager.asJson(
-    #         Const.SETTINGS_FILENAME).get('thread_timeout', 5000)
-    #     sublime.set_timeout(command.stop, timeout)
+    @staticmethod
+    def loadDefaultConnectionName():
+        default = SettingsManager.asJson(
+            Const.CONNECTIONS_FILENAME).get('default', False)
+        if not default:
+            return
+        Log.debug('Default database set to ' + default +
+                  '. Loading options and auto complete.')
+        return default
 
-    # @staticmethod
-    # def loadDefaultConnectionName():
-    #     default = SettingsManager.asJson(
-    #         Const.CONNECTIONS_FILENAME).get('default', False)
-    #     if not default:
-    #         return
-    #     Log.debug('Default database set to ' + default +
-    #               '. Loading options and auto complete.')
-    #     return default
+    def getTables(self, callback):
+        query = self.getOptionsForSgdbCli()['queries']['desc']['query']
 
-    # def getTables(self, callback):
-    #     query = self.getOptionsForSgdbCli()['queries']['desc']['query']
+        def cb(result):
+            return Utils.getResultAsList(result, callback)
 
-    #     def cb(result):
-    #         return Utils.getResultAsList(result, callback)
+        Command.createAndRun(self.builArgs('desc'), query, cb)
 
-    #     Command.createAndRun(self.builArgs('desc'), query, cb)
+    def getColumns(self, callback):
 
-    # def getColumns(self, callback):
+        def cb(result):
+            return Utils.getResultAsList(result, callback)
 
-    #     def cb(result):
-    #         return Utils.getResultAsList(result, callback)
+        try:
+            query = self.getOptionsForSgdbCli()['queries']['columns']['query']
+            Command.createAndRun(self.builArgs('columns'), query, cb)
+        except Exception:
+            pass
 
-    #     try:
-    #         query = self.getOptionsForSgdbCli()['queries']['columns']['query']
-    #         Command.createAndRun(self.builArgs('columns'), query, cb)
-    #     except Exception:
-    #         pass
+    def getFunctions(self, callback):
 
-    # def getFunctions(self, callback):
+        def cb(result):
+            return Utils.getResultAsList(result, callback)
 
-    #     def cb(result):
-    #         return Utils.getResultAsList(result, callback)
+        try:
+            query = self.getOptionsForSgdbCli()['queries'][
+                'functions']['query']
+            Command.createAndRun(self.builArgs(
+                'functions'), query, cb)
+        except Exception:
+            pass
 
-    #     try:
-    #         query = self.getOptionsForSgdbCli()['queries'][
-    #             'functions']['query']
-    #         Command.createAndRun(self.builArgs(
-    #             'functions'), query, cb)
-    #     except Exception:
-    #         pass
+    def getTableRecords(self, tableName, callback):
+        query = self.getOptionsForSgdbCli()['queries']['show records'][
+            'query'].format(tableName, self.rowsLimit)
+        Command.createAndRun(self.builArgs('show records'), query, callback)
 
-    # def getTableRecords(self, tableName, callback):
-    #     query = self.getOptionsForSgdbCli()['queries']['show records'][
-    #         'query'].format(tableName, self.rowsLimit)
-    #     Command.createAndRun(self.builArgs('show records'), query, callback)
+    def getTableDescription(self, tableName, callback):
+        query = self.getOptionsForSgdbCli()['queries']['desc table'][
+            'query'] % tableName
+        Command.createAndRun(self.builArgs('desc table'), query, callback)
 
-    # def getTableDescription(self, tableName, callback):
-    #     query = self.getOptionsForSgdbCli()['queries']['desc table'][
-    #         'query'] % tableName
-    #     Command.createAndRun(self.builArgs('desc table'), query, callback)
+    def getFunctionDescription(self, functionName, callback):
+        query = self.getOptionsForSgdbCli()['queries']['desc function'][
+            'query'] % functionName
+        Command.createAndRun(self.builArgs('desc function'), query, callback)
 
-    # def getFunctionDescription(self, functionName, callback):
-    #     query = self.getOptionsForSgdbCli()['queries']['desc function'][
-    #         'query'] % functionName
-    #     Command.createAndRun(self.builArgs('desc function'), query, callback)
+    def execute(self, queries, callback):
+        queryToRun = ''
 
-    # def execute(self, queries, callback):
-    #     queryToRun = ''
+        for query in self.getOptionsForSgdbCli()['before']:
+            queryToRun += query + "\n"
 
-    #     for query in self.getOptionsForSgdbCli()['before']:
-    #         queryToRun += query + "\n"
+        if isinstance(queries, str):
+            queries = [queries]
 
-    #     if isinstance(queries, str):
-    #         queries = [queries]
+        for query in queries:
+            queryToRun += query + "\n"
 
-    #     for query in queries:
-    #         queryToRun += query + "\n"
+        queryToRun = queryToRun.rstrip('\n')
 
-    #     queryToRun = queryToRun.rstrip('\n')
-    #     windowVars = sublime.active_window().extract_variables()
-    #     if isinstance(windowVars, dict) and 'file_extension' in windowVars:
-    #         windowVars = windowVars['file_extension'].lstrip()
-    #         unescapeExtension = SettingsManager.asJson(
-    #             Const.SETTINGS_FILENAME).get('unescape_quotes')
-    #         if windowVars in unescapeExtension:
-    #             queryToRun = queryToRun.replace(
-    #                 "\\\"", "\"").replace("\\\'", "\'")
+        Log.debug("Query: " + queryToRun)
+        History.add(queryToRun)
+        Command.createAndRun(self.builArgs(), queryToRun, callback)
 
-    #     Log.debug("Query: " + queryToRun)
-    #     History.add(queryToRun)
-    #     Command.createAndRun(self.builArgs(), queryToRun, callback)
+    def builArgs(self, queryName=None):
+        cliOptions = self.getOptionsForSgdbCli()
+        args = [self.cli]
 
-    # def builArgs(self, queryName=None):
-    #     cliOptions = self.getOptionsForSgdbCli()
-    #     args = [self.cli]
+        if len(cliOptions['options']) > 0:
+            args = args + cliOptions['options']
 
-    #     if len(cliOptions['options']) > 0:
-    #         args = args + cliOptions['options']
+        if queryName and len(cliOptions['queries'][queryName]['options']) > 0:
+            args = args + cliOptions['queries'][queryName]['options']
 
-    #     if queryName and len(cliOptions['queries'][queryName]['options']) > 0:
-    #         args = args + cliOptions['queries'][queryName]['options']
+        if isinstance(cliOptions['args'], list):
+            cliOptions['args'] = ' '.join(cliOptions['args'])
 
-    #     if isinstance(cliOptions['args'], list):
-    #         cliOptions['args'] = ' '.join(cliOptions['args'])
+        cliOptions = cliOptions['args'].format(**self.options)
+        args = args + shlex.split(cliOptions)
 
-    #     cliOptions = cliOptions['args'].format(**self.options)
-    #     args = args + shlex.split(cliOptions)
+        Log.debug('Usgin cli args ' + ' '.join(args))
+        return args
 
-    #     Log.debug('Usgin cli args ' + ' '.join(args))
-    #     return args
+    def getOptionsForSgdbCli(self):
+        return Settings.get('cli_options')[self.type]
 
-    # def getOptionsForSgdbCli(self):
-    #     return Settings.get('cli_options')[self.type]
+
+class Selection:
+    @staticmethod
+    def get():
+        selection = ed.get_text_sel()
+        return selection if selection and selection != "" else None
+
+    @staticmethod
+    def formatSql():
+        text = Selection.get()
+        x0, y0, x1, y1 = ed.get_sel_rect()
+        ed.delete(x0, y0, x1, y1)
+
+        ed.insert(x0, y0, Utils.formatSql(text))
+
+
+class Command:
+    def __init__(self, args, callback, query=None, encoding='utf-8'):
+        self.query = query
+        self.process = None
+        self.args = args
+        self.encoding = encoding
+        self.callback = callback
+
+    def start(self):
+        if not self.query:
+            return
+        msg_status('ST: running SQL command')
+        self.args = map(str, self.args)
+        si = None
+        if os.name == 'nt':
+            si = subprocess.STARTUPINFO()
+            si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
+        self.process = subprocess.Popen(self.args,
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE,
+                                        stdin=subprocess.PIPE,
+                                        env=os.environ.copy(),
+                                        startupinfo=si)
+        results, errors = self.process.communicate(input=self.query.encode())
+
+        resultString = ''
+
+        if results:
+            resultString += results.decode(self.encoding,
+                                           'replace').replace('\r', '')
+
+        if errors:
+            resultString += errors.decode(self.encoding,
+                                          'replace').replace('\r', '')
+
+        self.callback(resultString)
+
+    @staticmethod
+    def createAndRun(args, query, callback):
+        command = Command(args, callback, query)
+        command.start()
+
+
+class Utils:
+    # Regular expression for comments
+    comment_re = re.compile(
+        '(^)?[^\S\n]*/(?:\*(.*?)\*/[^\S\n]*|/[^\n]*)($)?',
+        re.DOTALL | re.MULTILINE
+    )
+
+    @staticmethod
+    def parseJson(filename):
+        """ Parse a JSON file
+            First remove comments and then use the json module package
+            Comments look like :
+                // ...
+            or
+                /*
+                ...
+                */
+        """
+
+        with open(filename) as f:
+            content = ''.join(f.readlines())
+
+            # Looking for comments
+            match = Utils.comment_re.search(content)
+            while match:
+                # single line comment
+                content = content[:match.start()] + content[match.end():]
+                match = Utils.comment_re.search(content)
+
+            # Return json file
+            return json.loads(content)
+
+    @staticmethod
+    def getResultAsList(results, callback=None):
+        resultList = []
+        for result in results.splitlines():
+            try:
+                resultList.append(result.split('|')[1].strip())
+            except IndexError:
+                pass
+
+        if callback:
+            callback(resultList)
+
+        return resultList
+
+    @staticmethod
+    def formatSql(raw):
+        settings = Settings.get("format")
+        try:
+            result = sqlparse.format(raw,
+                                     keyword_case=settings.get("keyword_case"),
+                                     identifier_case=settings.get(
+                                         "identifier_case"),
+                                     strip_comments=settings.get(
+                                         "strip_comments"),
+                                     indent_tabs=settings.get("indent_tabs"),
+                                     indent_width=settings.get("indent_width"),
+                                     reindent=settings.get("reindent")
+                                     )
+
+            return result
+        except Exception:
+            return None
+
+
+class History:
+    queries = []
+
+    @staticmethod
+    def add(query):
+        if len(History.queries) >= Settings.get('history_size', 100):
+            History.queries.pop(0)
+        History.queries.insert(0, query)
+
+    @staticmethod
+    def get(index):
+        if index < 0 or index > (len(History.queries) - 1):
+            raise "No query selected"
+
+        return History.queries[index]

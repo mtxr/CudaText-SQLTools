@@ -6,71 +6,75 @@ subdir=cuda_sqltools
 homepage=https://github.com/mtxr/CudaText-SQLTools
 
 [item1]
+section=events
+events=on_start
+
+[item2]
 section=commands
 caption=SQL Tools\Execute
 method=executeQuery
 
-[item2]
+[item3]
 section=commands
 caption=SQL Tools\History
 method=showHistory
 
-[item3]
+[item4]
 section=commands
 caption=SQL Tools\Function description
 method=describeFunction
 
-[item4]
+[item5]
 section=commands
 caption=SQL Tools\Save query
 method=saveQuery
 
-[item5]
+[item6]
 section=commands
 caption=SQL Tools\Select connection
 method=selectConnection
 
-[item6]
+[item7]
 section=commands
 caption=SQL Tools\Table description
 method=describeTable
 
-[item7]
+[item8]
 section=commands
 caption=SQL Tools\Remove saved query
 method=deleteSavedQuery
 
-[item8]
+[item9]
 section=commands
 caption=SQL Tools\Show table records
 method=showRecords
 
-[item9]
+[item10]
 section=commands
 caption=SQL Tools\Format current SQL file
 method=formatQuery
 
-[item10]
+[item11]
 section=commands
 caption=SQL Tools\List and open saved queries
 method=showSavedQueries
 
-[item11]
+[item12]
 section=commands
 caption=SQL Tools\List and run saved queries
 method=runSavedQuery
 
-[item12]
+[item13]
 section=commands
 caption=SQL Tools\-
 method=nnn
 
-[item13]
+[item14]
 section=commands
 caption=SQL Tools\Setup connections
 method=editConnections
 
-[item14]
+[item15]
 section=commands
 caption=SQL Tools\Setup
 method=editSettings
