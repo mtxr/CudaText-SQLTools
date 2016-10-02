@@ -83,9 +83,9 @@ class ST:
         app_log(LOG_ADD, output, 0)
 
 class Command:
-    def on_start(self, ed_self):
+    def __init__(self):
         ST.bootstrap()
-        STM.Log.debug("Plugin loaded successfully!")
+        STM.Log.debug("plugin loaded")
 
     def executeQuery(self):
         if not ST.conn:
