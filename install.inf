@@ -5,9 +5,9 @@ type=cudatext-plugin
 subdir=cuda_sqltools
 homepage=https://github.com/mtxr/CudaText-SQLTools
 
-[item1]
+[item1_disabled]
 section=events
-events=on_start
+events=
 
 [item2]
 section=commands
