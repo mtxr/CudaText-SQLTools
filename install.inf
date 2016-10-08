@@ -5,82 +5,82 @@ type=cudatext-plugin
 subdir=cuda_sqltools
 homepage=https://github.com/mtxr/CudaText-SQLTools
 
-;[item1]
-;section=events
-;events=
+[item1]
+section=events
+events=on_start
 
 [item2]
 section=commands
 caption=SQL Tools\Execute
 method=executeQuery
-lexers=SQL,MySQL SQL,PL/SQL,T-SQL
+;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 hotkey=Ctrl+E|Ctrl+E
 
 [item3]
 section=commands
 caption=SQL Tools\History
 method=showHistory
-lexers=SQL,MySQL SQL,PL/SQL,T-SQL
+;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 hotkey=Ctrl+E|Ctrl+H
 
 [item4]
 section=commands
 caption=SQL Tools\Function description
 method=describeFunction
-lexers=SQL,MySQL SQL,PL/SQL,T-SQL
+;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 
 [item5]
 section=commands
 caption=SQL Tools\Save query
 method=saveQuery
-lexers=SQL,MySQL SQL,PL/SQL,T-SQL
+;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 hotkey=Ctrl+E|Ctrl+Q
 
 [item6]
 section=commands
 caption=SQL Tools\Select connection
 method=selectConnection
-lexers=SQL,MySQL SQL,PL/SQL,T-SQL
+;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 
 [item7]
 section=commands
 caption=SQL Tools\Table description
 method=describeTable
-lexers=SQL,MySQL SQL,PL/SQL,T-SQL
+;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 hotkey=Ctrl+E|Ctrl+D
 
 [item8]
 section=commands
 caption=SQL Tools\Remove saved query
 method=deleteSavedQuery
-lexers=SQL,MySQL SQL,PL/SQL,T-SQL
+;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 hotkey=Ctrl+E|Ctrl+R
 
 [item9]
 section=commands
 caption=SQL Tools\Show table records
 method=showRecords
-lexers=SQL,MySQL SQL,PL/SQL,T-SQL
+;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 hotkey=Ctrl+E|Ctrl+S
 
 [item10]
 section=commands
 caption=SQL Tools\Format current SQL file
 method=formatQuery
-lexers=SQL,MySQL SQL,PL/SQL,T-SQL
+;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 hotkey=Ctrl+E|Ctrl+B
 
 [item11]
 section=commands
 caption=SQL Tools\List and open saved queries
 method=showSavedQueries
-lexers=SQL,MySQL SQL,PL/SQL,T-SQL
+;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 
 [item12]
 section=commands
 caption=SQL Tools\List and run saved queries
 method=runSavedQuery
-lexers=SQL,MySQL SQL,PL/SQL,T-SQL
+;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 hotkey=Ctrl+E|Ctrl+A
 
 [item50]

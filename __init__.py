@@ -1,133 +1,342 @@
-import sys
+__version__ = "v0.0.1"
+
 import os
 
-dirpath = os.path.dirname(__file__)
-if dirpath not in sys.path:
-    sys.path.append(dirpath)
-
+# import cudatext api functions
 from cudatext import *
-import SQLToolsModels as STM
+
+# import SQLTools api
+from .SQLToolsAPI import Utils
+from .SQLToolsAPI.Log import Log, Logger
+from .SQLToolsAPI.Storage import Storage, Settings
+from .SQLToolsAPI.Connection import Connection
+from .SQLToolsAPI.History import History
+
+USER_FOLDER                  = None
+DEFAULT_FOLDER               = None
+SETTINGS_FILENAME            = None
+SETTINGS_FILENAME_DEFAULT    = None
+CONNECTIONS_FILENAME         = None
+CONNECTIONS_FILENAME_DEFAULT = None
+QUERIES_FILENAME             = None
+QUERIES_FILENAME_DEFAULT     = None
+settings                     = None
+queries                      = None
+connections                  = None
+history                      = None
+
+OUTPUT_TO_FILE = 'sqltools_file_output'
+
+
+def startPlugin():
+    global USER_FOLDER, DEFAULT_FOLDER, SETTINGS_FILENAME, SETTINGS_FILENAME_DEFAULT, CONNECTIONS_FILENAME, CONNECTIONS_FILENAME_DEFAULT, QUERIES_FILENAME, QUERIES_FILENAME_DEFAULT, settings, queries, connections, history
+
+    USER_FOLDER = app_path(APP_DIR_SETTINGS)
+    DEFAULT_FOLDER = os.path.dirname(__file__)
+
+    SETTINGS_FILENAME            = os.path.join(USER_FOLDER, "cuda_sqltools_settings.json")
+    SETTINGS_FILENAME_DEFAULT    = os.path.join(DEFAULT_FOLDER, "cuda_sqltools_settings.json")
+    CONNECTIONS_FILENAME         = os.path.join(USER_FOLDER, "cuda_sqltools_connections.json")
+    CONNECTIONS_FILENAME_DEFAULT = os.path.join(DEFAULT_FOLDER, "cuda_sqltools_connections.json")
+    QUERIES_FILENAME             = os.path.join(USER_FOLDER, "cuda_sqltools_savedqueries.json")
+    QUERIES_FILENAME_DEFAULT     = os.path.join(DEFAULT_FOLDER, "cuda_sqltools_savedqueries.json")
+
+    settings    = Settings(SETTINGS_FILENAME, default=SETTINGS_FILENAME_DEFAULT)
+    queries     = Storage(QUERIES_FILENAME, default=QUERIES_FILENAME_DEFAULT)
+    connections = Settings(CONNECTIONS_FILENAME, default=CONNECTIONS_FILENAME_DEFAULT)
+    history     = History(settings.get('history_size', 100))
+
+    Logger.setPackageVersion(__version__)
+    Logger.setPackageName(__package__)
+    Logger.setLogging(settings.get('debug', True))
+    Connection.setTimeout(settings.get('thread_timeout', 5000))
+    Connection.setHistoryManager(history)
+
+    Log(__package__ + " Loaded!")
+
+
+def getConnections():
+    connectionsObj = {}
+
+    options = connections.get('connections', {})
+    for name, config in options.items():
+        connectionsObj[name] = Connection(name, config, settings=settings.all(), commandClass='Command')
+
+    return connectionsObj
+
+
+def loadDefaultConnection():
+    default = settings.get('default', False)
+    if not default:
+        return
+    Log('Default database set to ' + default + '. Loading options and auto complete.')
+    return default
+
+
+def output(content, panel=None):
+    if not panel:
+        panel = getOutputPlace()
+
+    if panel == LOG_PANEL_OUTPUT:
+        app_log(LOG_SET_PANEL, panel)
+        app_log(LOG_CLEAR, '')
+        app_log(LOG_ADD, content, 0)
+        return
+
+    toNewTab(content)
+
+
+def toNewTab(content, discard=None):
+    file_open('')
+    ed.set_text_all(str(content))
+
+
+def getOutputPlace():
+        if settings.get('show_result_on_window', True):
+            return OUTPUT_TO_FILE
+
+        return LOG_PANEL_OUTPUT
+
+
+def getSelection():
+    selection = ed.get_text_sel()
+    return selection if selection and selection != "" else ""
 
 
 class ST:
     conn = None
-    history = []
-    tables = []
-    functions = []
-    columns = []
-    connectionList = {}
+    tables = None
+    functions = None
+    columns = None
+    connectionList = None
     autoCompleteList = []
 
     @staticmethod
     def bootstrap():
-        ST.connectionList = STM.Settings.getConnections()
+        ST.connectionList = getConnections()
         ST.checkDefaultConnection()
 
     @staticmethod
-    def setAttrIfNotEmpty(attr, value):
-        if isinstance(value, list) and len(value) == 0:
-            return
-        setattr(ST, attr, value)
-
-    @staticmethod
-    def loadConnectionData():
-        if not ST.conn:
-            return
-
-        ST.conn.getTables(
-            lambda tables: ST.setAttrIfNotEmpty('tables', tables))
-        ST.conn.getColumns(
-            lambda columns: ST.setAttrIfNotEmpty('columns', columns))
-        ST.conn.getFunctions(
-            lambda functions: ST.setAttrIfNotEmpty('functions', functions))
-
-    @staticmethod
-    def setConnection(selected, menu):
-        if selected is None:
-            return
-
-        selected = menu[selected].split('\t')[0]
-        ST.conn = ST.connectionList[selected]
-        STM.Log.debug('Connection {0} selected'.format(ST.conn))
-
-    @staticmethod
-    def showConnectionMenu():
-        ST.connectionList = STM.Settings.getConnections()
-        if len(ST.connectionList) == 0:
-            msg_box('You need to setup your connections first.', MB_OK)
-            return
-
-        menu = []
-        for conn in ST.connectionList.values():
-            menu.append('\t'.join(conn.toQuickPanel()))
-        menu.sort()
-
-        selected = dlg_menu(MENU_LIST, '\n'.join(menu))
-        ST.setConnection(selected, menu)
-
-    @staticmethod
     def checkDefaultConnection():
-        default = STM.Connection.loadDefaultConnectionName()
+        default = loadDefaultConnection()
         if not default:
             return
         try:
             ST.conn = ST.connectionList.get(default)
             ST.loadConnectionData()
         except Exception:
-            STM.Log.debug("Invalid connection setted")
+            Log("Invalid connection setted")
 
     @staticmethod
-    def getOutputPanel(output):
-        app_log(LOG_SET_PANEL, LOG_PANEL_OUTPUT)
-        app_log(LOG_CLEAR, '')
-        app_log(LOG_ADD, output, 0)
+    def loadConnectionData(tablesCallback=None, columnsCallback=None, functionsCallback=None):
+        if not ST.conn:
+            return
+
+        def tbCallback(tables):
+            setattr(ST, 'tables', tables)
+            if tablesCallback:
+                tablesCallback()
+
+        def colCallback(columns):
+            setattr(ST, 'columns', columns)
+            if columnsCallback:
+                columnsCallback()
+
+        def funcCallback(functions):
+            setattr(ST, 'functions', functions)
+            if functionsCallback:
+                functionsCallback()
+
+        ST.conn.getTables(tbCallback)
+        ST.conn.getColumns(colCallback)
+        ST.conn.getFunctions(funcCallback)
+
+    @staticmethod
+    def setConnection(selected, menu, tablesCallback=None, columnsCallback=None, functionsCallback=None):
+        if selected is None:
+            return
+
+        selected = menu[selected].split('\t')[0]
+        ST.conn = ST.connectionList[selected]
+
+        ST.loadConnectionData(tablesCallback, columnsCallback, functionsCallback)
+
+        Log('Connection {0} selected'.format(ST.conn))
+
+    @staticmethod
+    def selectConnection(tablesCallback=None, columnsCallback=None, functionsCallback=None):
+
+        ST.connectionList = getConnections()
+        if len(ST.connectionList) == 0:
+            msg_box('You need to setup your connections first.', MB_OK + MB_ICONWARNING)
+            return
+
+        menu = []
+        for conn in ST.connectionList.values():
+            menu.append('\t'.join([conn.name, conn._info()]))
+        menu.sort()
+
+        selected = dlg_menu(MENU_LIST, '\n'.join(menu))
+        ST.setConnection(selected, menu, tablesCallback, columnsCallback, functionsCallback)
+
+    @staticmethod
+    def selectTable(callback):
+        if len(ST.tables) == 0:
+            msg_box('Your database has no tables.', MB_OK + MB_ICONWARNING)
+            return
+
+        selected = dlg_menu(MENU_LIST, '\n'.join(ST.tables))
+        callback(selected)
+
+    @staticmethod
+    def selectFunction(callback):
+        if len(ST.functions) == 0:
+            msg_box('Your database has no functions.', MB_OK + MB_ICONWARNING)
+            return
+
+        selected = dlg_menu(MENU_LIST, '\n'.join(ST.functions))
+        callback(selected)
+
 
 class Command:
-    def __init__(self):
+    def on_start(self, ed_self):
+        startPlugin()
         ST.bootstrap()
-        STM.Log.debug("plugin loaded")
+
+    def selectConnection(self):
+        ST.selectConnection()
+
+    def showRecords(self):
+
+        if not ST.conn:
+            ST.selectConnection(tablesCallback=lambda: self.showRecords())
+            return
+
+        def cb(selected):
+            if selected is None:
+                return None
+            return ST.conn.getTableRecords(ST.tables[selected], output)
+
+        ST.selectTable(cb)
+
+    def describeTable(self):
+        if not ST.conn:
+            ST.selectConnection(tablesCallback=lambda: self.describeTable())
+            return
+
+        def cb(selected):
+            if selected is None:
+                return None
+            return ST.conn.getTableDescription(ST.tables[selected], output)
+
+        ST.selectTable(cb)
+
+    def describeFunction(self):
+        if not ST.conn:
+            ST.selectConnection(functionsCallback=lambda: self.describeFunction())
+            return
+
+        def cb(selected):
+            if selected is None:
+                return None
+            functionName = ST.functions[selected].split('(', 1)[0]
+            return ST.conn.getFunctionDescription(functionName, output)
+
+        # get everything until first occurence of "(", e.g. get "function_name"
+        # from "function_name(int)"
+        ST.selectFunction(cb)
 
     def executeQuery(self):
         if not ST.conn:
-            ST.showConnectionMenu()
+
+            ST.selectConnection(tablesCallback=lambda: ST.conn.execute(getSelection(), output))
             return
 
-        query = STM.Selection.get()
 
-        ST.conn.execute(query, ST.getOutputPanel)
-
-    def showHistory(self):
-        pass
-
-    def describeFunction(self):
-        pass
-
-    def saveQuery(self):
-        pass
-
-    def selectConnection(self):
-        ST.showConnectionMenu()
-
-    def describeTable(self):
-        pass
-
-    def deleteSavedQuery(self):
-        pass
-
-    def showRecords(self):
-        pass
+        ST.conn.execute(getSelection(), output)
 
     def formatQuery(self):
-        pass
+        selection = getSelection()
+        x0, y0, x1, y1 = ed.get_carets()[0]
+        if (y1 > y0) or ((y1 == y0) and (x1 >= x0)):
+            pass
+        else:
+            x0, y0, x1, y1 = x1, y1, x0, y0
 
-    def showSavedQueries(self):
-        pass
+        ed.set_caret(x0, y0)
+        ed.delete(x0, y0, x1, y1)
+        ed.insert(x0, y0, Utils.formatSql(selection, settings.get('format', {})))
+
+    def showHistory(self):
+        if not ST.conn:
+            ST.selectConnection(functionsCallback=lambda: self.showHistory())
+            return
+
+        if len(history.all()) == 0:
+            msg_box('History is empty.', MB_OK + MB_ICONWARNING)
+            return
+
+        selected = dlg_menu(MENU_LIST, '\n'.join(history.all()))
+        if selected is None:
+            return None
+        return ST.conn.execute(history.get(selected), output)
+
+    def saveQuery(self):
+        query = getSelection()
+
+        alias = dlg_input('Query alias', '')
+        if len(alias) > 0:
+            queries.add(alias, query)
+
+    def showSavedQueries(self, mode="list"):
+        if not ST.conn:
+            ST.selectConnection(functionsCallback=lambda: self.showSavedQueries(mode))
+            return
+
+        queriesList = queries.all()
+        if len(queriesList) == 0:
+            msg_box('No saved queries.', MB_OK + MB_ICONWARNING)
+            return
+
+        options = []
+        for alias, query in queriesList.items():
+            options.append('\t'.join([str(alias), str(query)]))
+        options.sort()
+
+        selected = dlg_menu(MENU_LIST, '\n'.join(options))
+        if selected is None:
+            return None
+
+        param2 = output if mode == "run" else None
+        func = ST.conn.execute if mode == "run" else toNewTab
+
+        return func(queriesList.get(options[selected].split('\t')[0]), param2)
+
+    def deleteSavedQuery(self):
+        if not ST.conn:
+            ST.selectConnection(functionsCallback=lambda: self.deleteSavedQuery())
+            return
+
+        queriesList = queries.all()
+        if len(queriesList) == 0:
+            msg_box('No saved queries.', MB_OK + MB_ICONWARNING)
+            return
+
+        options = []
+        for alias, query in queriesList.items():
+            options.append('\t'.join([str(alias), str(query)]))
+        options.sort()
+
+        selected = dlg_menu(MENU_LIST, '\n'.join(options))
+        if selected is None:
+            return None
+        return queries.delete(options[selected].split('\t')[0])
 
     def runSavedQuery(self):
-        pass
+        return self.showSavedQueries('run')
 
     def editConnections(self):
-        file_open(STM.SettingsManager.file(STM.Const.CONNECTIONS_FILENAME))
+        file_open(CONNECTIONS_FILENAME)
 
     def editSettings(self):
-        file_open(STM.SettingsManager.file(STM.Const.SETTINGS_FILENAME))
+        file_open(SETTINGS_FILENAME)

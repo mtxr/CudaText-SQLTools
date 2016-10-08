@@ -1,4 +1,4 @@
-SQLTools
+SQLTools v0.0.1
 ======== 
 
 Your swiss knife SQL for CudaText.
@@ -19,7 +19,6 @@ These fellows helped SQLTools become better than ever. Thank you so much!
 
 * [@tkopets](https://github.com/tkopets)
 * [@gabrielebarbieri](https://github.com/gabrielebarbieri)
-* [@Alexey-T](https://github.com/Alexey-T)
 
 ## Features
 

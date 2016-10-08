@@ -1,4 +1,5 @@
-__pychace__
+__pycache__/
+SQLToolsAPI/__pycache__/
 .idea/
 .DS_Store
 *.pyc
