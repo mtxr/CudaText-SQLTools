@@ -199,6 +199,9 @@ class ST:
 
 
 class Command:
+    def __init__(self):
+        self.on_start(None)
+
     def on_start(self, ed_self):
         startPlugin()
         ST.bootstrap()
