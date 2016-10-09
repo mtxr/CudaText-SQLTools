@@ -1,4 +1,4 @@
-__version__ = "v0.0.1"
+__version__ = "v0.0.2"
 
 import os
 
@@ -48,12 +48,12 @@ def startPlugin():
     history     = History(settings.get('history_size', 100))
 
     Logger.setPackageVersion(__version__)
-    Logger.setPackageName(__package__)
+    Logger.setPackageName('SQL Tools')
     Logger.setLogging(settings.get('debug', True))
     Connection.setTimeout(settings.get('thread_timeout', 5000))
     Connection.setHistoryManager(history)
 
-    Log("Plugin loaded!")
+    Log("Plugin loaded")
 
 
 def getConnections():
@@ -281,7 +281,7 @@ class Command:
 
         if all:
             ed.set_text_all(text)
-            msg_status('SQLTools: formatted all text')
+            msg_status('SQL Tools: formatted all text')
         else:
             x0, y0, x1, y1 = carets[0]
             if (y1 > y0) or ((y1 == y0) and (x1 >= x0)):
@@ -292,7 +292,7 @@ class Command:
             ed.set_caret(x0, y0)
             ed.delete(x0, y0, x1, y1)
             ed.insert(x0, y0, text)
-            msg_status('SQLTools: formatted selection')
+            msg_status('SQL Tools: formatted selection')
 
     def showHistory(self):
         if not ST.conn:
