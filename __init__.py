@@ -194,7 +194,7 @@ class ST:
 
     @staticmethod
     def selectFunction(callback):
-        if len(ST.functions) == 0:
+        if not ST.functions:
             msg_box('Your database has no functions.', MB_OK + MB_ICONWARNING)
             return
 
