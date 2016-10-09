@@ -353,7 +353,7 @@ class Command:
             return
 
         queriesList = queries.all()
-        if len(queriesList) == 0:
+        if not queriesList:
             msg_box('No saved queries.', MB_OK + MB_ICONWARNING)
             return
 
