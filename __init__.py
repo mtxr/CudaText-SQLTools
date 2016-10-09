@@ -4,6 +4,7 @@ import os
 
 # import cudatext api functions
 from cudatext import *
+import cudatext_cmd as cmds
 
 # import SQLTools api
 from .SQLToolsAPI import Utils
@@ -78,9 +79,11 @@ def output(content, panel=None):
         panel = getOutputPlace()
 
     if panel == LOG_PANEL_OUTPUT:
+        ed.cmd(cmds.cmd_ShowPanelOutput)
         app_log(LOG_SET_PANEL, panel)
         app_log(LOG_CLEAR, '')
-        app_log(LOG_ADD, content, 0)
+        for s in content.splitlines():
+            app_log(LOG_ADD, s, 0)
         return
 
     toNewTab(content)
