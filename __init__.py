@@ -310,11 +310,14 @@ class Command:
         return ST.conn.execute(history.get(selected), output)
 
     def saveQuery(self):
-        query = getSelection()
+        text = getSelection()
+        if not text:
+            msg_status('Text not selected')
+            return
 
-        alias = dlg_input('Query alias', '')
-        if len(alias) > 0:
-            queries.add(alias, query)
+        alias = dlg_input('Query alias:', '')
+        if alias: #can be None or empty str
+            queries.add(alias, text)
 
     def showSavedQueries(self, mode="list"):
         if not ST.conn:
