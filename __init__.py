@@ -99,8 +99,8 @@ def getOutputPlace():
 
 
 def getSelection():
-    selection = ed.get_text_sel()
-    return selection if selection and selection != "" else ""
+    #api always gets string
+    return ed.get_text_sel()
 
 
 class ST:
