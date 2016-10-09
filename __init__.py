@@ -1,4 +1,4 @@
-__version__ = "v0.0.2"
+__version__ = "v0.0.1"
 
 import os
 
@@ -253,13 +253,15 @@ class Command:
         ST.selectFunction(cb)
 
     def executeQuery(self):
-        if not ST.conn:
-
-            ST.selectConnection(tablesCallback=lambda: ST.conn.execute(getSelection(), output))
+        text = getSelection()
+        if not text:
+            msg_status('Text not selected')
             return
 
-
-        ST.conn.execute(getSelection(), output)
+        if not ST.conn:
+            ST.selectConnection(tablesCallback=lambda: ST.conn.execute(text, output))
+        else:
+            ST.conn.execute(text, output)
 
     def formatQuery(self):
         carets = ed.get_carets()
