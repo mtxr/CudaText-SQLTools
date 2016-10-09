@@ -1,4 +1,4 @@
-__version__ = "v0.0.1"
+__version__ = "v0.0.2"
 
 import os
 
@@ -53,7 +53,7 @@ def startPlugin():
     Connection.setTimeout(settings.get('thread_timeout', 5000))
     Connection.setHistoryManager(history)
 
-    Log(__package__ + " Loaded!")
+    Log("Plugin loaded!")
 
 
 def getConnections():
