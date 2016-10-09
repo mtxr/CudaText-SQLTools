@@ -259,16 +259,35 @@ class Command:
         ST.conn.execute(getSelection(), output)
 
     def formatQuery(self):
-        selection = getSelection()
-        x0, y0, x1, y1 = ed.get_carets()[0]
-        if (y1 > y0) or ((y1 == y0) and (x1 >= x0)):
-            pass
-        else:
-            x0, y0, x1, y1 = x1, y1, x0, y0
+        carets = ed.get_carets()
+        if len(carets)!=1:
+            msg_status('Need single caret')
+            return
 
-        ed.set_caret(x0, y0)
-        ed.delete(x0, y0, x1, y1)
-        ed.insert(x0, y0, Utils.formatSql(selection, settings.get('format', {})))
+        text = getSelection()
+        all = False
+        if not text:
+            text = ed.get_text_all()
+            if not text: return
+            all = True
+
+        text = Utils.formatSql(text, settings.get('format', {}))
+        if not text: return
+
+        if all:
+            ed.set_text_all(text)
+            msg_status('SQLTools: formatted all text')
+        else:
+            x0, y0, x1, y1 = carets[0]
+            if (y1 > y0) or ((y1 == y0) and (x1 >= x0)):
+                pass
+            else:
+                x0, y0, x1, y1 = x1, y1, x0, y0
+
+            ed.set_caret(x0, y0)
+            ed.delete(x0, y0, x1, y1)
+            ed.insert(x0, y0, text)
+            msg_status('SQLTools: formatted selection')
 
     def showHistory(self):
         if not ST.conn:
