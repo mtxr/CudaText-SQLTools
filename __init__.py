@@ -256,8 +256,12 @@ class Command:
     def executeQuery(self):
         text = getSelection()
         if not text:
-            msg_status('Text not selected')
-            return
+            #get current line
+            x0, y0, x1, y1 = ed.get_carets()[0]
+            text = ed.get_text_line(y0)
+            if not text:
+                msg_status('Text not selected/ current line empty')
+                return
 
         if not ST.conn:
             ST.selectConnection(tablesCallback=lambda: ST.conn.execute(text, output))
