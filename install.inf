@@ -11,50 +11,23 @@ events=on_start
 
 [item2]
 section=commands
-caption=SQL Tools\Execute
+caption=SQL Tools\Execute query
 method=executeQuery
 ;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 hotkey=Ctrl+E|Ctrl+E
 
-[item3]
-section=commands
-caption=SQL Tools\History
-method=showHistory
-;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
-hotkey=Ctrl+E|Ctrl+H
-
 [item4]
 section=commands
-caption=SQL Tools\Function description
+caption=SQL Tools\Describe function
 method=describeFunction
-;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
-
-[item5]
-section=commands
-caption=SQL Tools\Save query
-method=saveQuery
-;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
-hotkey=Ctrl+E|Ctrl+Q
-
-[item6]
-section=commands
-caption=SQL Tools\Select connection
-method=selectConnection
 ;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 
 [item7]
 section=commands
-caption=SQL Tools\Table description
+caption=SQL Tools\Describe table
 method=describeTable
 ;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 hotkey=Ctrl+E|Ctrl+D
-
-[item8]
-section=commands
-caption=SQL Tools\Remove saved query
-method=deleteSavedQuery
-;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
-hotkey=Ctrl+E|Ctrl+R
 
 [item9]
 section=commands
@@ -65,28 +38,60 @@ hotkey=Ctrl+E|Ctrl+S
 
 [item10]
 section=commands
-caption=SQL Tools\Format current SQL file
+caption=SQL Tools\Format query text
 method=formatQuery
 ;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 hotkey=Ctrl+E|Ctrl+B
 
-[item11]
+[item30]
+section=commands
+caption=SQL Tools\-
+method=_
+
+[item31]
+section=commands
+caption=SQL Tools\History
+method=showHistory
+;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
+hotkey=Ctrl+E|Ctrl+H
+
+[item32]
+section=commands
+caption=SQL Tools\Save query
+method=saveQuery
+;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
+hotkey=Ctrl+E|Ctrl+Q
+
+[item34]
 section=commands
 caption=SQL Tools\List and open saved queries
 method=showSavedQueries
 ;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 
-[item12]
+[item35]
 section=commands
 caption=SQL Tools\List and run saved queries
 method=runSavedQuery
 ;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 hotkey=Ctrl+E|Ctrl+A
 
-[item50]
+[item37]
+section=commands
+caption=SQL Tools\Remove saved query
+method=deleteSavedQuery
+;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
+hotkey=Ctrl+E|Ctrl+R
+
+[item40]
 section=commands
 caption=SQL Tools\-
 method=_
+
+[item41]
+section=commands
+caption=SQL Tools\Select connection
+method=selectConnection
+;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 
 [item51]
 section=commands
