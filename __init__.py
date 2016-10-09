@@ -91,6 +91,7 @@ def output(content, panel=None):
 
 def toNewTab(content, discard=None):
     file_open('')
+    ed.set_prop(PROP_TAB_TITLE, 'SQL result')
     ed.set_text_all(str(content))
 
 
