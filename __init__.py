@@ -1,9 +1,10 @@
-__version__ = "v0.0.1"
+__version__ = "v0.0.2"
 
 import os
 
 # import cudatext api functions
 from cudatext import *
+import cudatext_cmd as cmds
 
 # import SQLTools api
 from .SQLToolsAPI import Utils
@@ -47,12 +48,12 @@ def startPlugin():
     history     = History(settings.get('history_size', 100))
 
     Logger.setPackageVersion(__version__)
-    Logger.setPackageName(__package__)
+    Logger.setPackageName('SQL Tools')
     Logger.setLogging(settings.get('debug', True))
     Connection.setTimeout(settings.get('thread_timeout', 5000))
     Connection.setHistoryManager(history)
 
-    Log(__package__ + " Loaded!")
+    Log("Plugin loaded")
 
 
 def getConnections():
@@ -78,9 +79,11 @@ def output(content, panel=None):
         panel = getOutputPlace()
 
     if panel == LOG_PANEL_OUTPUT:
+        ed.cmd(cmds.cmd_ShowPanelOutput)
         app_log(LOG_SET_PANEL, panel)
         app_log(LOG_CLEAR, '')
-        app_log(LOG_ADD, content, 0)
+        for s in content.splitlines():
+            app_log(LOG_ADD, s, 0)
         return
 
     toNewTab(content)
@@ -88,6 +91,7 @@ def output(content, panel=None):
 
 def toNewTab(content, discard=None):
     file_open('')
+    ed.set_prop(PROP_TAB_TITLE, 'SQL result')
     ed.set_text_all(str(content))
 
 
@@ -99,8 +103,8 @@ def getOutputPlace():
 
 
 def getSelection():
-    selection = ed.get_text_sel()
-    return selection if selection and selection != "" else ""
+    #api always gets string
+    return ed.get_text_sel()
 
 
 class ST:
@@ -250,25 +254,46 @@ class Command:
         ST.selectFunction(cb)
 
     def executeQuery(self):
-        if not ST.conn:
-
-            ST.selectConnection(tablesCallback=lambda: ST.conn.execute(getSelection(), output))
+        text = getSelection()
+        if not text:
+            msg_status('Text not selected')
             return
 
-
-        ST.conn.execute(getSelection(), output)
+        if not ST.conn:
+            ST.selectConnection(tablesCallback=lambda: ST.conn.execute(text, output))
+        else:
+            ST.conn.execute(text, output)
 
     def formatQuery(self):
-        selection = getSelection()
-        x0, y0, x1, y1 = ed.get_carets()[0]
-        if (y1 > y0) or ((y1 == y0) and (x1 >= x0)):
-            pass
-        else:
-            x0, y0, x1, y1 = x1, y1, x0, y0
+        carets = ed.get_carets()
+        if len(carets)!=1:
+            msg_status('Need single caret')
+            return
 
-        ed.set_caret(x0, y0)
-        ed.delete(x0, y0, x1, y1)
-        ed.insert(x0, y0, Utils.formatSql(selection, settings.get('format', {})))
+        text = getSelection()
+        all = False
+        if not text:
+            text = ed.get_text_all()
+            if not text: return
+            all = True
+
+        text = Utils.formatSql(text, settings.get('format', {}))
+        if not text: return
+
+        if all:
+            ed.set_text_all(text)
+            msg_status('SQL Tools: formatted all text')
+        else:
+            x0, y0, x1, y1 = carets[0]
+            if (y1 > y0) or ((y1 == y0) and (x1 >= x0)):
+                pass
+            else:
+                x0, y0, x1, y1 = x1, y1, x0, y0
+
+            ed.set_caret(x0, y0)
+            ed.delete(x0, y0, x1, y1)
+            ed.insert(x0, y0, text)
+            msg_status('SQL Tools: formatted selection')
 
     def showHistory(self):
         if not ST.conn:
