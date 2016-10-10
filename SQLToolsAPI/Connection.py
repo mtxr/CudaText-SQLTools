@@ -17,7 +17,7 @@ class Connection:
 
         if cli_path is None:
             Log((
-                "'{0}' could not be found by Sublime Text.\n\n" +
+                "'{0}' could not be found.\n\n" +
                 "Please set the '{0}' path in your SQLTools settings " +
                 "before continue.").format(self.cli))
             return
