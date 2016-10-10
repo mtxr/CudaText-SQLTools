@@ -67,10 +67,10 @@ def getConnections():
 
 
 def loadDefaultConnection():
-    default = settings.get('default', False)
+    default = connections.get('default', None)
     if not default:
         return
-    Log('Default database set to ' + default + '. Loading options and auto complete.')
+    Log('Default connection set to: %s' % default)
     return default
 
 
