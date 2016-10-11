@@ -7,7 +7,7 @@ homepage=https://github.com/mtxr/CudaText-SQLTools
 
 [item1]
 section=events
-events=on_start
+;;events=on_start
 
 [item2]
 section=commands
