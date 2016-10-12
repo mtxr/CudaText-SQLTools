@@ -1,5 +1,5 @@
-SQLTools v0.0.1
-======== 
+SQLTools v0.5.0
+========
 
 Your swiss knife SQL for CudaText.
 
