@@ -1,13 +1,13 @@
 [info]
-title=SQL Tools
-desc=SQL Tools is a swiss army knife for your SQL databases
+title=SQLTools
+desc=Swiss army knife for your SQL databases. Gives lot of commands to work with databases: execute queries, format queries, show tables schema, show tables records, etc.
 type=cudatext-plugin
 subdir=cuda_sqltools
 homepage=https://github.com/mtxr/CudaText-SQLTools
 
-[item1]
-section=events
-;;events=on_start
+;[item1]
+;section=events
+;events=on_start
 
 [item2]
 section=commands
