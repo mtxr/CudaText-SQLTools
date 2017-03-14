@@ -3,6 +3,10 @@
     "thread_timeout"        : 5000,
     "history_size"          : 100,
     "show_result_on_window" : true,
+    "clear_output"          : false,
+    "safe_limit"            : false,
+    "show_query"            : false,
+    "expand_to_paragraph"   : false,
     "unescape_quotes" : [
         "php"
     ],
@@ -105,7 +109,7 @@
                     "format" : "|%s|"
                 },
                 "show records": {
-                    "query": "select * from {0} limit {1};",
+                    "query": "select * from {0} WHERE ROWNUM <= {1};",
                     "options": ["-S"],
                     "format" : "|%s|"
                 }
