@@ -1,0 +1,8 @@
+
+2017.03.14
++ add same new options (def config file) as ST3 version:
+  + "clear_output"
+  + "safe_limit"
+  + "show_query"
+  + "expand_to_paragraph"
++ patch for ST3 vers: run commands in `before` items in the main setting file

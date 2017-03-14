@@ -1,9 +1,10 @@
-SQLTools v0.5.0
-========
+SQLTools - CudaText version
+===========================
 
-Your swiss knife SQL for CudaText.
+Your swiss knife SQL for CudaText editor.
+Plugin ported from Sublime Text 3 version.
 
-Project website: [http://mtxr.github.io/SQLTools/](http://mtxr.github.io/SQLTools/)
+Original project website: [http://mtxr.github.io/SQLTools/](http://mtxr.github.io/SQLTools/)
 
 ## Donate
 
@@ -41,7 +42,7 @@ These fellows helped SQLTools become better than ever. Thank you so much!
 
 ## Todo
 
-Up coming features:
+Upcoming features:
 
 * Auto complete for Oracle, Vertica, Firebird and SQLite
 
