@@ -70,7 +70,12 @@
                     "query": "\\sf %s",
                     "options": [],
                     "format" : "|%s|"
-                }
+                },
+                "explain plan": {
+                    "query": "explain {0};",
+                    "options": [],
+                    "format" : "|%s|"
+                 }
             }
         },
         "oracle": {
@@ -112,6 +117,11 @@
                     "query": "select * from {0} WHERE ROWNUM <= {1};",
                     "options": ["-S"],
                     "format" : "|%s|"
+                },
+                "explain plan": {
+                    "query": "explain plan for {0};\nselect plan_table_output from table(dbms_xplan.display());",
+                    "options": ["-S"],
+                    "format" : "|%s|"
                 }
             }
         },
@@ -139,6 +149,11 @@
                     "query": "SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = DATABASE();",
                     "options": ["-f", "--table"],
                     "format" : "|%s|"
+                },
+                "explain plan": {
+                    "query": "explain {0};",
+                    "options": ["-f", "--table"],
+                    "format" : "|%s|"
                 }
             }
         },
@@ -159,6 +174,11 @@
                 },
                 "show records": {
                     "query": "select * from {0} limit {1}",
+                    "options": [],
+                    "format" : "|%s|"
+                },
+                "explain plan": {
+                    "query": "explain {0};",
                     "options": [],
                     "format" : "|%s|"
                 }
@@ -206,6 +226,11 @@
                 },
                 "show records": {
                     "query": "select * from \"{0}\" limit {1};",
+                    "options": ["-column"],
+                    "format" : "|%s|"
+                },
+                "explain plan": {
+                    "query": "EXPLAIN QUERY PLAN {0};",
                     "options": ["-column"],
                     "format" : "|%s|"
                 }

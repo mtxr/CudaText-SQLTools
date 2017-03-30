@@ -268,6 +268,23 @@ class Command:
         else:
             ST.conn.execute(text, output)
 
+
+    def explainPlan(self):
+        text = getSelection()
+        if not text:
+            #get current line
+            x0, y0, x1, y1 = ed.get_carets()[0]
+            text = ed.get_text_line(y0)
+            if not text:
+                msg_status('Text not selected/ current line empty')
+                return
+
+        if not ST.conn:
+            ST.selectConnection(tablesCallback=lambda: ST.conn.explainPlan(text, output))
+        else:
+            ST.conn.explainPlan(text, output)
+
+
     def formatQuery(self):
         carets = ed.get_carets()
         if len(carets)!=1:

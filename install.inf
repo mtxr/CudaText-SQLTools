@@ -13,34 +13,35 @@ homepage=https://github.com/mtxr/CudaText-SQLTools
 section=commands
 caption=SQL Tools\Execute query
 method=executeQuery
-;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 hotkey=Ctrl+E|Ctrl+E
+
+[item3]
+section=commands
+caption=SQL Tools\Explain plan
+method=explainPlan
+hotkey=Ctrl+E|Ctrl+X
 
 [item4]
 section=commands
 caption=SQL Tools\Describe function
 method=describeFunction
-;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 
 [item7]
 section=commands
 caption=SQL Tools\Describe table
 method=describeTable
-;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 hotkey=Ctrl+E|Ctrl+D
 
 [item9]
 section=commands
 caption=SQL Tools\Show table records
 method=showRecords
-;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 hotkey=Ctrl+E|Ctrl+S
 
 [item10]
 section=commands
 caption=SQL Tools\Format query text
 method=formatQuery
-;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 hotkey=Ctrl+E|Ctrl+B
 
 [item30]
@@ -52,34 +53,29 @@ method=_
 section=commands
 caption=SQL Tools\History
 method=showHistory
-;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 hotkey=Ctrl+E|Ctrl+H
 
 [item32]
 section=commands
 caption=SQL Tools\Save query
 method=saveQuery
-;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 hotkey=Ctrl+E|Ctrl+Q
 
 [item34]
 section=commands
 caption=SQL Tools\List and open saved queries
 method=showSavedQueries
-;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 
 [item35]
 section=commands
 caption=SQL Tools\List and run saved queries
 method=runSavedQuery
-;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 hotkey=Ctrl+E|Ctrl+A
 
 [item37]
 section=commands
 caption=SQL Tools\Remove saved query
 method=deleteSavedQuery
-;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 hotkey=Ctrl+E|Ctrl+R
 
 [item40]
@@ -91,7 +87,6 @@ method=_
 section=commands
 caption=SQL Tools\Select connection
 method=selectConnection
-;lexers=SQL,MySQL SQL,PL/SQL,T-SQL
 
 [item51]
 section=commands
@@ -100,5 +95,5 @@ method=editConnections
 
 [item52]
 section=commands
-caption=SQL Tools\Setup
+caption=SQL Tools\Setup plugin
 method=editSettings
