@@ -1,7 +1,10 @@
 
+2018.08.31
+- avoid deprecated CudaText API
+
 2017.03.30
-+ SQLTools api updated
-+ Show explain plan for queries (PostgreSQL, MySQL, Oracle, Vertica, SQLite) 
++ updated SQLTools API
++ added command: Show explain plan for queries (PostgreSQL, MySQL, Oracle, Vertica, SQLite) 
 
 2017.03.14
 + add same new options (def config file) as ST3 version:

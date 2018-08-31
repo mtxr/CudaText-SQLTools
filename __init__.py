@@ -80,10 +80,9 @@ def output(content, panel=None):
 
     if panel == LOG_PANEL_OUTPUT:
         ed.cmd(cmds.cmd_ShowPanelOutput)
-        app_log(LOG_SET_PANEL, panel)
-        app_log(LOG_CLEAR, '')
+        app_log(LOG_CLEAR, '', panel=panel)
         for s in content.splitlines():
-            app_log(LOG_ADD, s, 0)
+            app_log(LOG_ADD, s, 0, panel=panel)
         return
 
     toNewTab(content)
