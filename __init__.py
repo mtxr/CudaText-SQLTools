@@ -174,7 +174,18 @@ class ST:
 
         ST.loadConnectionData(tablesCallback, columnsCallback, functionsCallback)
 
+        ST.reset_cache(tablesCallback, columnsCallback, functionsCallback)
         _log('Connection {0} selected'.format(ST.conn))
+
+
+    @staticmethod
+    def reset_cache(tablesCallback=None, columnsCallback=None, functionsCallback=None):
+
+        # clear list of identifiers in case connection is changed
+        ST.tables = []
+        ST.columns = []
+        ST.functions = []
+        ST.loadConnectionData(tablesCallback, columnsCallback, functionsCallback)
 
     @staticmethod
     def selectConnection(tablesCallback=None, columnsCallback=None, functionsCallback=None):
@@ -415,3 +426,9 @@ class Command:
             return
         ST.loadConnectionData()
         _log('Refreshed connection data')
+
+    def clearCache(self):
+        if not ST.conn:
+            return
+        ST.reset_cache()
+        _log('Cleared cache')

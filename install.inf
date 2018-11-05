@@ -86,20 +86,25 @@ method=refreshConnData
 
 [item40]
 section=commands
+caption=SQL Tools\Clear table+function cache
+method=clearCache
+
+[item70]
+section=commands
 caption=SQL Tools\-
 method=_
 
-[item41]
+[item80]
 section=commands
 caption=SQL Tools\Select connection
 method=selectConnection
 
-[item51]
+[item81]
 section=commands
 caption=SQL Tools\Setup connections
 method=editConnections
 
-[item52]
+[item82]
 section=commands
 caption=SQL Tools\Setup plugin
 method=editSettings

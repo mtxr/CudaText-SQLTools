@@ -4,6 +4,7 @@
 + updated default configs from ST3 plugin - you may need to delete file [CudaText]/settings/cuda_sqltools_settings.json
 + add captions to menu dialogs
 + add command "Refresh connection data"
++ add command "Clear cache"
 
 2018.08.31
 - avoid deprecated CudaText API
