@@ -26,8 +26,6 @@ queries                      = None
 connections                  = None
 history                      = None
 
-OUTPUT_TO_FILE = 'sqltools_file_output'
-
 
 def _log(s):
     print('SQL Tools:', s)
@@ -79,21 +77,20 @@ def loadDefaultConnection():
     return default
 
 
-def output(content, panel=None):
-    if not panel:
-        panel = getOutputPlace()
+def output(content):
+    opt = settings.get('show_result_on_window', False)
 
-    if panel == LOG_PANEL_OUTPUT:
+    if not opt:
         if settings.get('focus_on_result', False):
             ed.cmd(cmds.cmd_ShowPanelOutput_AndFocus)
         else:
             ed.cmd(cmds.cmd_ShowPanelOutput)
         
         if settings.get('clear_output', False):
-            app_log(LOG_CLEAR, '', panel=panel)
+            app_log(LOG_CLEAR, '', panel=LOG_PANEL_OUTPUT)
         
         for s in content.splitlines():
-            app_log(LOG_ADD, s, 0, panel=panel)
+            app_log(LOG_ADD, s, 0, panel=LOG_PANEL_OUTPUT)
 
     else:
         toNewTab(content)
@@ -103,13 +100,6 @@ def toNewTab(content, discard=None):
     file_open('')
     ed.set_prop(PROP_TAB_TITLE, 'SQL result')
     ed.set_text_all(str(content))
-
-
-def getOutputPlace():
-        if settings.get('show_result_on_window', True):
-            return OUTPUT_TO_FILE
-
-        return LOG_PANEL_OUTPUT
 
 
 def get_editor_text():
