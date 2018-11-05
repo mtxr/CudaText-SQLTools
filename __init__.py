@@ -11,6 +11,7 @@ from .SQLToolsAPI import Utils
 from .SQLToolsAPI.Storage import Storage, Settings
 from .SQLToolsAPI.Connection import Connection
 from .SQLToolsAPI.History import History
+from .SQLToolsAPI.Completion import Completion
 
 USER_FOLDER                  = None
 DEFAULT_FOLDER               = None
@@ -62,8 +63,10 @@ def getConnections():
     connectionsObj = {}
 
     options = connections.get('connections', {})
+    allSettings = settings.all()
+    
     for name, config in options.items():
-        connectionsObj[name] = Connection(name, config, settings=settings.all(), commandClass='Command')
+        connectionsObj[name] = Connection(name, config, settings=allSettings, commandClass='Command')
 
     return connectionsObj
 
@@ -109,12 +112,12 @@ def getSelection():
 
 
 class ST:
+    connectionList = None
     conn = None
     tables = None
     functions = None
     columns = None
-    connectionList = None
-    autoCompleteList = []
+    completion = None
 
     @staticmethod
     def bootstrap():
@@ -146,20 +149,36 @@ class ST:
             return
 
         def tbCallback(tables):
-            setattr(ST, 'tables', tables)
+            ST.tables = tables
+            nonlocal callbacksRun
+            callbacksRun += 1
+            if callbacksRun == 3:
+                ST.completion = Completion(ST.tables, ST.columns, ST.functions, settings=settings)
+            
             if tablesCallback:
                 tablesCallback()
 
         def colCallback(columns):
-            setattr(ST, 'columns', columns)
+            ST.columns = columns
+            nonlocal callbacksRun
+            callbacksRun += 1
+            if callbacksRun == 3:
+                ST.completion = Completion(ST.tables, ST.columns, ST.functions, settings=settings)
+
             if columnsCallback:
                 columnsCallback()
 
         def funcCallback(functions):
-            setattr(ST, 'functions', functions)
+            ST.functions = functions
+            nonlocal callbacksRun
+            callbacksRun += 1
+            if callbacksRun == 3:
+                ST.completion = Completion(ST.tables, ST.columns, ST.functions, settings=settings)
+
             if functionsCallback:
                 functionsCallback()
 
+        callbacksRun = 0
         ST.conn.getTables(tbCallback)
         ST.conn.getColumns(colCallback)
         ST.conn.getFunctions(funcCallback)
