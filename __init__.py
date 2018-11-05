@@ -89,7 +89,9 @@ def output(content, panel=None):
         else:
             ed.cmd(cmds.cmd_ShowPanelOutput)
         
-        app_log(LOG_CLEAR, '', panel=panel)
+        if settings.get('clear_output', False):
+            app_log(LOG_CLEAR, '', panel=panel)
+        
         for s in content.splitlines():
             app_log(LOG_ADD, s, 0, panel=panel)
 

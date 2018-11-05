@@ -1,6 +1,7 @@
 
 2018.11.06
 + supported option "focus_on_result"
++ supported option "clear_output"
 
 2018.11.05
 + updated SQLTools API from last ST3 plugin (lot of changes)
