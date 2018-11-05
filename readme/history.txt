@@ -3,6 +3,7 @@
 + updated SQLTools API from last ST3 plugin (lot of changes)
 + updated default configs from ST3 plugin - you may need to delete file [CudaText]/settings/cuda_sqltools_settings.json
 + add captions to menu dialogs
++ add command "Refresh connection data"
 
 2018.08.31
 - avoid deprecated CudaText API

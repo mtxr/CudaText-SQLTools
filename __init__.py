@@ -134,6 +134,14 @@ class ST:
 
     @staticmethod
     def loadConnectionData(tablesCallback=None, columnsCallback=None, functionsCallback=None):
+
+        # clear the list of identifiers (in case connection is changed)
+        ST.tables = []
+        ST.columns = []
+        ST.functions = []
+        ST.completion = None
+        callbacksRun = 0
+
         if not ST.conn:
             return
 
@@ -401,3 +409,9 @@ class Command:
 
     def editSettings(self):
         file_open(SETTINGS_FILENAME)
+
+    def refreshConnData(self):
+        if not ST.conn:
+            return
+        ST.loadConnectionData()
+        _log('Refreshed connection data')

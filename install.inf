@@ -79,6 +79,11 @@ caption=SQL Tools\Remove saved query
 method=deleteSavedQuery
 hotkey=Ctrl+E|Ctrl+R
 
+[item39]
+section=commands
+caption=SQL Tools\Refresh connection data
+method=refreshConnData
+
 [item40]
 section=commands
 caption=SQL Tools\-
