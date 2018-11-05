@@ -62,7 +62,7 @@ def getConnections():
 
     options = connections.get('connections', {})
     allSettings = settings.all()
-    
+
     for name, config in options.items():
         connectionsObj[name] = Connection(name, config, settings=allSettings, commandClass='Command')
 
@@ -85,10 +85,10 @@ def output(content):
             ed.cmd(cmds.cmd_ShowPanelOutput_AndFocus)
         else:
             ed.cmd(cmds.cmd_ShowPanelOutput)
-        
+
         if settings.get('clear_output', False):
             app_log(LOG_CLEAR, '', panel=LOG_PANEL_OUTPUT)
-        
+
         for s in content.splitlines():
             app_log(LOG_ADD, s, 0, panel=LOG_PANEL_OUTPUT)
 
@@ -116,7 +116,7 @@ def get_editor_text():
     "expand_to": "file",
     '''
     opt = settings.get('expand_to', 'file')
-    
+
     if opt=='file':
         return ed.get_text_all()
     elif opt=='line':
@@ -125,7 +125,7 @@ def get_editor_text():
     else:
         _log('Option "expand_to" value "%s" not supported'%opt)
         return ''
-    
+
 
 class ST:
     connectionList = None
@@ -170,7 +170,7 @@ class ST:
             callbacksRun += 1
             if callbacksRun == 3:
                 ST.completion = Completion(ST.tables, ST.columns, ST.functions, settings=settings)
-            
+
             if tablesCallback:
                 tablesCallback()
 
@@ -314,7 +314,7 @@ class Command:
     def executeQuery(self):
         text = get_editor_text()
         if not text:
-            msg_status('Text not selected') 
+            msg_status('Text not selected')
             return
 
         if not ST.conn:
@@ -326,7 +326,7 @@ class Command:
     def explainPlan(self):
         text = get_editor_text()
         if not text:
-            msg_status('Text not selected') 
+            msg_status('Text not selected')
             return
 
         if not ST.conn:
@@ -347,12 +347,12 @@ class Command:
             text = ed.get_text_all()
             if not text: return
             all = True
-            
+
         with_eol = text.endswith('\n')
 
         text = Utils.formatSql(text, settings.get('format', {}))
         if not text: return
-        
+
         if with_eol and not text.endswith('\n'):
             text += '\n'
 
@@ -388,7 +388,7 @@ class Command:
     def saveQuery(self):
         text = get_editor_text()
         if not text:
-            msg_status('Text not selected') 
+            msg_status('Text not selected')
             return
 
         alias = dlg_input('Query alias:', '')
@@ -413,11 +413,12 @@ class Command:
         selected = dlg_menu(MENU_LIST, options, caption='Queries')
         if selected is None:
             return None
+        text = queriesList.get(options[selected].split('\t')[0])
 
-        param2 = output if mode == "run" else None
-        func = ST.conn.execute if mode == "run" else toNewTab
-
-        return func(queriesList.get(options[selected].split('\t')[0]), param2)
+        if mode=='run':
+            ST.conn.execute(text, output)
+        else:
+            toNewTab(text, None)
 
     def deleteSavedQuery(self):
         if not ST.conn:
@@ -437,7 +438,9 @@ class Command:
         selected = dlg_menu(MENU_LIST, options, caption='Queries')
         if selected is None:
             return None
-        return queries.delete(options[selected].split('\t')[0])
+        text = options[selected].split('\t')[0]
+
+        return queries.delete(text)
 
     def runSavedQuery(self):
         return self.showSavedQueries('run')
