@@ -49,7 +49,7 @@ def startPlugin():
     connections = Settings(CONNECTIONS_FILENAME, default=CONNECTIONS_FILENAME_DEFAULT)
     history     = History(settings.get('history_size', 100))
 
-    Connection.setTimeout(settings.get('thread_timeout', 5000))
+    Connection.setTimeout(settings.get('thread_timeout', 15))
     Connection.setHistoryManager(history)
 
     _log("Plugin loaded")
