@@ -31,6 +31,9 @@ OUTPUT_TO_FILE = 'sqltools_file_output'
 def _log(s):
     print('SQL Tools:', s)
 
+def msg_er(s):
+    msg_box(s, MB_OK+MB_ICONWARNING)
+
 def startPlugin():
     global USER_FOLDER, DEFAULT_FOLDER, SETTINGS_FILENAME, SETTINGS_FILENAME_DEFAULT, CONNECTIONS_FILENAME, CONNECTIONS_FILENAME_DEFAULT, QUERIES_FILENAME, QUERIES_FILENAME_DEFAULT, settings, queries, connections, history
 
@@ -170,7 +173,7 @@ class ST:
 
         ST.connectionList = getConnections()
         if len(ST.connectionList) == 0:
-            msg_box('You need to setup your connections first.', MB_OK + MB_ICONWARNING)
+            msg_er('You need to setup your connections first')
             return
 
         menu = []
@@ -181,25 +184,25 @@ class ST:
                 )
         menu.sort()
 
-        selected = dlg_menu(MENU_LIST, menu)
+        selected = dlg_menu(MENU_LIST, menu, caption='Connections')
         ST.setConnection(selected, menu, tablesCallback, columnsCallback, functionsCallback)
 
     @staticmethod
     def selectTable(callback):
         if len(ST.tables) == 0:
-            msg_box('Your database has no tables', MB_OK + MB_ICONWARNING)
+            msg_er('Your database has no tables')
             return
 
-        selected = dlg_menu(MENU_LIST, ST.tables)
+        selected = dlg_menu(MENU_LIST, ST.tables, caption='Tables')
         callback(selected)
 
     @staticmethod
     def selectFunction(callback):
         if not ST.functions:
-            msg_box('Your database has no functions', MB_OK + MB_ICONWARNING)
+            msg_er('Your database has no functions')
             return
 
-        selected = dlg_menu(MENU_LIST, ST.functions)
+        selected = dlg_menu(MENU_LIST, ST.functions, caption='Functions')
         callback(selected)
 
 
@@ -331,7 +334,7 @@ class Command:
             msg_status('SQL Tools: History is empty')
             return
 
-        selected = dlg_menu(MENU_LIST, history.all())
+        selected = dlg_menu(MENU_LIST, history.all(), caption='History')
         if selected is None:
             return None
         return ST.conn.execute(history.get(selected), output)
@@ -353,7 +356,7 @@ class Command:
 
         queriesList = queries.all()
         if len(queriesList) == 0:
-            msg_box('No saved queries.', MB_OK + MB_ICONWARNING)
+            msg_er('No saved queries')
             return
 
         options = []
@@ -361,7 +364,7 @@ class Command:
             options.append('\t'.join([str(alias), str(query)]))
         options.sort()
 
-        selected = dlg_menu(MENU_LIST, options)
+        selected = dlg_menu(MENU_LIST, options, caption='Queries')
         if selected is None:
             return None
 
@@ -385,7 +388,7 @@ class Command:
             options.append('\t'.join([str(alias), str(query)]))
         options.sort()
 
-        selected = dlg_menu(MENU_LIST, options)
+        selected = dlg_menu(MENU_LIST, options, caption='Queries')
         if selected is None:
             return None
         return queries.delete(options[selected].split('\t')[0])
