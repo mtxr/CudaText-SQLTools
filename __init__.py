@@ -84,13 +84,17 @@ def output(content, panel=None):
         panel = getOutputPlace()
 
     if panel == LOG_PANEL_OUTPUT:
-        ed.cmd(cmds.cmd_ShowPanelOutput)
+        if settings.get('focus_on_result', False):
+            ed.cmd(cmds.cmd_ShowPanelOutput_AndFocus)
+        else:
+            ed.cmd(cmds.cmd_ShowPanelOutput)
+        
         app_log(LOG_CLEAR, '', panel=panel)
         for s in content.splitlines():
             app_log(LOG_ADD, s, 0, panel=panel)
-        return
 
-    toNewTab(content)
+    else:
+        toNewTab(content)
 
 
 def toNewTab(content, discard=None):
