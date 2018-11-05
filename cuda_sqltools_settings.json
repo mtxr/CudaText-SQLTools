@@ -1,28 +1,82 @@
+// NOTE: it is strongly advised to override ONLY those settings
+// that you wish to change in your Users settings.
+// Don't copy-paste the entire config.
 {
-    "debug"                 : true,
-    "thread_timeout"        : 15,
-    "history_size"          : 100,
-    "show_result_on_window" : true,
-    "clear_output"          : false,
-    "safe_limit"            : false,
-    "show_query"            : false,
-    "expand_to_paragraph"   : false,
-    "unescape_quotes" : [
-        "php"
-    ],
-    "cli" : {
+    ///**
+    // * If DB cli binary is not in PATH, set the full path in "cli" section.
+    // * Note: forward slashes ("/") should be used in path. Example:
+    // *  "mysql"   : "c:/Program Files/MySQL/MySQL Server 5.7/bin/mysql.exe"
+    // */
+    "cli": {
         "mysql"   : "mysql",
         "pgsql"   : "psql",
+        "mssql"   : "sqlcmd",
         "oracle"  : "sqlplus",
+        "sqlite"  : "sqlite3",
         "vertica" : "vsql",
-        "sqsh"    : "sqsh",
         "firebird": "isql",
-        "sqlite"  : "sqlite3"
+        "sqsh"    : "sqsh"
     },
-    "show_records" : {
-        "limit" : 50
+
+    // If there is no SQL selected, use "expanded" region.
+    // Possible options:
+    //  "file"      - entire file contents
+    //  "paragraph" - text between newlines relative to cursor(s)
+    //  "line"      - current line of cursor(s)
+    "expand_to": "file",
+
+    // puts results either in output panel or new window
+    "show_result_on_window": false,
+
+    // focus on result panel
+    "focus_on_result": false,
+
+    // clears the output of previous query
+    "clear_output": true,
+
+    // query timeout in seconds
+    "thread_timeout": 15,
+
+    // stream the output line by line
+    "use_streams": false,
+
+    // number of queries to save in the history
+    "history_size": 100,
+
+    "show_records": {
+        "limit": 50
     },
-    "format" : {
+
+    // unless false, appends LIMIT clause to SELECT statements (not compatible with all DB's)
+    "safe_limit": false,
+
+    "debug": false,
+
+    ///**
+    // * Print the queries that were executed to the output.
+    // * Possible values for show_query: "top", "bottom", true ("top"), or false (disable)
+    // * When using regular output, this will determine where query details is displayed.
+    // * In stream output mode, any option that isn't false will print query details at
+    // * the bottom of result.
+    // */
+    "show_query": false,
+
+    ///**
+    // * Possible values for autocompletion: "basic", "smart", true ("smart"),
+    // *                                      or false (disable)
+    // * Completion keywords case is controlled by format.keyword_case (see below)
+    // */
+    "autocompletion": "smart",
+
+    // Settings used for formatting the queries and autocompletions
+    //
+    // "keyword_case"   , "upper", "lower", "capitalize" and null (leaves case intact)
+    // "identifier_case", "upper", "lower", "capitalize" and null (leaves case intact)
+    // "strip_comments" , formatting removes comments
+    // "indent_tabs"    , use tabs instead of spaces
+    // "indent_width"   , indentation width
+    // "reindent"       , reindent code
+    "format": {
         "keyword_case"    : "upper",
         "identifier_case" : null,
         "strip_comments"  : false,
@@ -30,231 +84,431 @@
         "indent_width"    : 4,
         "reindent"        : true
     },
-     // Client options for you SGBD.
-     // In this file, the section cli has the names you can use here. Eg: "pgsql": "psql"
-     // So here, you must have "psql with the same sections listed bellow (options, before, args and queries)"
-     //
-     // Avoid changing the brackets content in "args"
+
+    ///**
+    // * The list of syntax selectors for which the plugin autocompletion will be active.
+    // * An empty list means autocompletion always active.
+    // */
+    "selectors": [
+        "source.sql",
+        "source.pgsql",
+        "source.plpgsql.postgres",
+        "source.plsql.oracle",
+        "source.tsql"
+    ],
+
+    ///**
+    // * Command line interface options for each RDBMS.
+    // * In this file, the section `cli` above has the names you can use here.
+    // * E.g.: "mysql", "pgsql", "oracle"
+    // *
+    // * Names in the curly brackets (e.g. `{host}`) in sections `args`, `args_optional`,
+    // * `env`, `env_optional` are replaced by the values specified in the connection.
+    // */
     "cli_options": {
         "pgsql": {
-            "options": [],
+            "options": ["--no-password"],
             "before": [],
-            "args": "-h {host} -p {port} -U {username} -d {database}",
+            "after": [],
+            "args": "-d {database}",
+            "args_optional": [
+                "-h {host}",
+                "-p {port}",
+                "-U {username}"
+            ],
+            "env_optional": {
+                "PGPASSWORD": "{password}"
+            },
             "queries": {
-                "desc" : {
-                    "query": "SELECT  '|' || CASE WHEN n.nspname = current_schema() THEN quote_ident(c.relname) ELSE quote_ident(n.nspname)||'.'||quote_ident(c.relname) END ||'|' AS tblname FROM pg_catalog.pg_class AS c INNER JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace WHERE relkind = 'r' AND n.nspname NOT IN ('pg_catalog', 'pg_toast', 'information_schema') ORDER BY n.nspname = current_schema() DESC, pg_catalog.pg_table_is_visible(c.oid) DESC, n.nspname, c.relname",
-                    "options": ["-t", "--no-psqlrc"],
-                    "format" : "|%s|"
-                },
-                "desc table": {
-                    "query": "\\d+ %s",
-                    "options": [],
-                    "format" : "|%s|"
+                "execute": {
+                    "options": []
                 },
                 "show records": {
-                    "query": "select * from {0} limit {1}",
-                    "options": [],
-                    "format" : "|%s|"
+                    "query": "select * from {0} limit {1};",
+                    "options": []
                 },
-                "columns": {
-                    "query": "SELECT DISTINCT '|' || table_name || '.' || column_name || '|' FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() GROUP BY table_name, column_name;",
-                    "options": ["-t", "--no-psqlrc"],
-                    "format" : "|%s|"
-                },
-                "functions": {
-                    "query": "SELECT '|' || CASE WHEN n.nspname = current_schema() THEN quote_ident(f.proname) ELSE quote_ident(n.nspname)||'.'||quote_ident(f.proname) END || '(' || pg_get_function_identity_arguments(f.oid) || ')' || '|' AS funname FROM pg_catalog.pg_proc AS f INNER JOIN pg_catalog.pg_namespace AS n ON n.oid = f.pronamespace WHERE proisagg = false AND n.nspname NOT IN ('pg_catalog', 'information_schema')",
-                    "options": ["-t", "--no-psqlrc"],
-                    "format" : "|%s|"
+                "desc table": {
+                    "query": "\\d+ {0}",
+                    "options": []
                 },
                 "desc function": {
-                    "query": "\\sf %s",
-                    "options": [],
-                    "format" : "|%s|"
+                    "query": "\\sf {0}",
+                    "options": []
+                },
+                "explain plan": {
+                    "query": "explain analyze {0};",
+                    "options": []
+                },
+                "desc": {
+                    "query": "select quote_ident(table_schema) || '.' || quote_ident(table_name) as tblname from information_schema.tables where table_schema not in ('pg_catalog', 'information_schema') order by table_schema = current_schema() desc, table_schema, table_name;",
+                    "options": ["--tuples-only", "--no-psqlrc"]
+                },
+                "columns": {
+                    "query": "select distinct quote_ident(table_name) || '.' || quote_ident(column_name) from information_schema.columns where table_schema not in ('pg_catalog', 'information_schema');",
+                    "options": ["--tuples-only", "--no-psqlrc"]
+                },
+                "functions": {
+                    "query": "select quote_ident(n.nspname) || '.' || quote_ident(f.proname) || '(' || pg_get_function_identity_arguments(f.oid) || ')' as funname from pg_catalog.pg_proc as f inner join pg_catalog.pg_namespace as n on n.oid = f.pronamespace where f.proisagg = false and n.nspname not in ('pg_catalog', 'information_schema');",
+                    "options": ["--tuples-only", "--no-psqlrc"]
+                }
+            }
+        },
+
+        "mysql": {
+            "options": ["--no-auto-rehash", "--compress"],
+            "before": [],
+            "after": [],
+            "args": "-D\"{database}\"",
+            "args_optional": [
+                "--login-path=\"{login-path}\"",
+                "--defaults-extra-file=\"{defaults-extra-file}\"",
+                "--default-character-set=\"{default-character-set}\"",
+                "-h\"{host}\"",
+                "-P{port}",
+                "-u\"{username}\""
+            ],
+            "env_optional": {
+                "MYSQL_PWD": "{password}"
+            },
+            "queries": {
+                "execute": {
+                    "options": ["--table"]
+                },
+                "show records": {
+                    "query": "select * from {0} limit {1};",
+                    "options": ["--table"]
+                },
+                "desc table": {
+                    "query": "desc {0};",
+                    "options": ["--table"]
+                },
+                "desc function": {
+                    "query": "select routine_definition from information_schema.routines where concat(case when routine_schema REGEXP '[^0-9a-zA-Z$_]' then concat('`',routine_schema,'`') else routine_schema end, '.', case when routine_name REGEXP '[^0-9a-zA-Z$_]' then concat('`',routine_name,'`') else routine_name end) = '{0}';",
+                    "options": ["--silent", "--raw"]
                 },
                 "explain plan": {
                     "query": "explain {0};",
-                    "options": [],
-                    "format" : "|%s|"
-                 }
+                    "options": ["--table"]
+                },
+                "desc" : {
+                    "query": "select concat(case when table_schema REGEXP '[^0-9a-zA-Z$_]' then concat('`',table_schema,'`') else table_schema end, '.', case when table_name REGEXP '[^0-9a-zA-Z$_]' then concat('`',table_name,'`') else table_name end) as obj from information_schema.tables where table_schema = database() order by table_name;",
+                    "options": ["--silent", "--raw", "--skip-column-names"]
+                },
+                "columns": {
+                    "query": "select concat(case when table_name REGEXP '[^0-9a-zA-Z$_]' then concat('`',table_name,'`') else table_name end, '.', case when column_name REGEXP '[^0-9a-zA-Z$_]' then concat('`',column_name,'`') else column_name end) as obj from information_schema.columns where table_schema = database() order by table_name, ordinal_position;",
+                    "options": ["--silent", "--raw", "--skip-column-names"]
+                },
+                "functions": {
+                    "query": "select concat(case when routine_schema REGEXP '[^0-9a-zA-Z$_]' then concat('`',routine_schema,'`') else routine_schema end, '.', case when routine_name REGEXP '[^0-9a-zA-Z$_]' then concat('`',routine_name,'`') else routine_name end, '()') as obj from information_schema.routines where routine_schema = database();",
+                    "options": ["--silent", "--raw", "--skip-column-names"]
+                }
             }
         },
+
+        "mssql": {
+            "options": [],
+            "before": [],
+            "after": ["go", "quit"],
+            "args": "-d \"{database}\"",
+            "args_optional": ["-S \"{host},{port}\"", "-S \"{host}\\{instance}\"", "-U \"{username}\"", "-P \"{password}\""],
+            "queries": {
+                "execute": {
+                    "options": ["-k"]
+                },
+                "show records": {
+                    "query": "select top {1} * from {0};",
+                    "options": []
+                },
+                "desc table": {
+                    "query": "exec sp_help N'{0}';",
+                    "options": ["-y30", "-Y30"]
+                },
+                "desc function": {
+                    "query": "exec sp_helptext N'{0}';",
+                    "options": ["-h-1"]
+                },
+                "explain plan": {
+                    "query": "{0};",
+                    "options": ["-k"],
+                    "before": [
+                        "SET STATISTICS PROFILE ON",
+                        "SET STATISTICS IO ON",
+                        "SET STATISTICS TIME ON"
+                    ]
+                },
+                "desc": {
+                    "query": "set nocount on; select concat(table_schema, '.', table_name) as obj from information_schema.tables order by table_schema, table_name;",
+                    "options": ["-h-1", "-r1"]
+                },
+                "columns": {
+                    "query": "set nocount on; select distinct concat(table_name, '.', column_name) as obj from information_schema.columns;",
+                    "options": ["-h-1", "-r1"]
+                },
+                "functions": {
+                    "query": "set nocount on; select concat(routine_schema, '.', routine_name) as obj from information_schema.routines order by routine_schema, routine_name;",
+                    "options": ["-h-1", "-r1"]
+                }
+            }
+        },
+
         "oracle": {
             "options": ["-S"],
             "before": [
-                "SET AUTO           OFF",
-                "SET COLSEP         '|'",
-                "SET FEED           ON",
-                "SET FEEDBACK       ON",
-                "SET HEADING        ON",
-                "SET LINESIZE       32767",
-                "SET LONG           100",
-                "SET NULL           @",
-                "SET PAGESIZE       0 EMBEDDED ON",
-                "SET SERVEROUTPUT   ON",
-                "SET SQLBLANKLINES  ON",
-                "SET SQLPROMPT      ''",
-                "SET TAB            OFF",
-                "SET TI             ON",
-                "SET TIMI           OFF",
-                "SET TRIMSPOOL      OFF",
-                "SET UND            '-'",
-                "SET VERIFY         OFF ",
-                "SET WRAP           OFF"
+                "SET LINESIZE   32767",
+                "SET WRAP       OFF",
+                "SET PAGESIZE   0",
+                "SET EMBEDDED   ON",
+                "SET TRIMOUT    ON",
+                "SET TRIMSPOOL  ON",
+                "SET TAB        OFF",
+                "SET SERVEROUT  ON",
+                "SET NULL       '@'",
+                "SET COLSEP     '|'",
+                "SET SQLBLANKLINES ON"
             ],
+            "after": [],
+            "env_optional": {
+                "NLS_LANG": "{nls_lang}"
+            },
             "args": "{username}/{password}@\"(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST={host})(PORT={port})))(CONNECT_DATA=(SERVICE_NAME={service})))\"",
             "queries": {
-                "desc" : {
-                    "query": "select CONCAT(CONCAT('| ', table_name), ' |') as tables from user_tables;",
-                    "options": ["-S"],
-                    "format" : "|%s|"
-                },
-                "desc table": {
-                    "query": "desc %s;",
-                    "options": ["-S"],
-                    "format" : "|%s|"
+                "execute": {
+                    "options": [],
+                    "before": [
+                        // "SET TIMING     ON",
+                        "SET FEEDBACK   ON"
+                    ]
                 },
                 "show records": {
-                    "query": "select * from {0} WHERE ROWNUM <= {1};",
-                    "options": ["-S"],
-                    "format" : "|%s|"
+                    "query": "select * from {0} where rownum <= {1};",
+                    "options": [],
+                    "before": [
+                        "SET FEEDBACK   ON"
+                    ]
+                },
+                "desc table": {
+                    "query": "desc {0};",
+                    "options": [],
+                    "before": [
+                        "SET LINESIZE   80",  // override for readability
+                        "SET WRAP       ON",  // override for readability
+                        "SET FEEDBACK   ON"
+                    ]
+                },
+                "desc function": {
+                    "query": "select text from all_source where type in ('FUNCTION', 'PROCEDURE', 'PACKAGE', 'PACKAGE BODY') and name = nvl(substr(ltrim('{0}', sys_context('USERENV', 'CURRENT_SCHEMA') || '.' ), 0, instr(ltrim('{0}', sys_context('USERENV', 'CURRENT_SCHEMA') || '.' ), '.')-1), ltrim('{0}', sys_context('USERENV', 'CURRENT_SCHEMA') || '.' )) and owner = sys_context('USERENV', 'CURRENT_SCHEMA') order by type, line;",
+                    "options": [],
+                    "before": [
+                        "SET SERVEROUT  OFF",  // override
+                        "SET NULL       ''",   // override
+                        "SET HEADING    OFF",
+                        "SET FEEDBACK   OFF"
+                    ]
                 },
                 "explain plan": {
                     "query": "explain plan for {0};\nselect plan_table_output from table(dbms_xplan.display());",
-                    "options": ["-S"],
-                    "format" : "|%s|"
-                }
-            }
-        },
-        "mysql": {
-            "options": ["-f", "--table"],
-            "before": [],
-            "args": "-h{host} -P{port} -u\"{username}\" -p\"{password}\" -D\"{database}\"",
-            "queries": {
+                    "options": [],
+                    "before": [
+                        "SET FEEDBACK   ON"
+                    ]
+                },
                 "desc" : {
-                    "query": "show tables",
-                    "options": ["-f", "--table", "--skip-column-names"],
-                    "format" : "|%s|"
-                },
-                "desc table": {
-                    "query": "desc `%s`",
-                    "options": ["-f", "--table"],
-                    "format" : "|%s|"
-                },
-                "show records": {
-                    "query": "select * from `{0}` limit {1}",
-                    "options": ["-f", "--table"],
-                    "format" : "|%s|"
+                    "query": "select owner || '.' || case when upper(name) = name then name else chr(34) || name || chr(34) end as obj from (select owner, table_name as name from all_tables union all select owner, view_name as name from all_views) o where owner not in ('ANONYMOUS','APPQOSSYS','CTXSYS','DBSNMP','EXFSYS', 'LBACSYS', 'MDSYS','MGMT_VIEW','OLAPSYS','OWBSYS','ORDPLUGINS', 'ORDSYS','OUTLN', 'SI_INFORMTN_SCHEMA','SYS','SYSMAN','SYSTEM', 'TSMSYS','WK_TEST','WKSYS', 'WKPROXY','WMSYS','XDB','APEX_040000', 'APEX_PUBLIC_USER','DIP', 'FLOWS_30000','FLOWS_FILES','MDDATA', 'ORACLE_OCM','SPATIAL_CSW_ADMIN_USR', 'SPATIAL_WFS_ADMIN_USR', 'XS$NULL','PUBLIC');",
+                    "options": [],
+                    "before": [
+                        "SET SERVEROUT  OFF",  // override
+                        "SET NULL       ''",   // override
+                        "SET HEADING    OFF",
+                        "SET FEEDBACK   OFF"
+                    ]
                 },
                 "columns": {
-                    "query": "SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = DATABASE();",
-                    "options": ["-f", "--table"],
-                    "format" : "|%s|"
+                    "query": "select case when upper(table_name) = table_name then table_name else chr(34) || table_name || chr(34) end || '.' || case when upper(column_name) = column_name then column_name else chr(34) || column_name || chr(34) end as obj from (select c.table_name, c.column_name, t.owner from all_tab_columns c inner join all_tables t on c.owner = t.owner and c.table_name = t.table_name union all select c.table_name, c.column_name, t.owner from all_tab_columns c inner join all_views t on c.owner = t.owner and c.table_name = t.view_name) o where owner not in ('ANONYMOUS','APPQOSSYS','CTXSYS','DBSNMP','EXFSYS', 'LBACSYS', 'MDSYS','MGMT_VIEW','OLAPSYS','OWBSYS','ORDPLUGINS', 'ORDSYS','OUTLN', 'SI_INFORMTN_SCHEMA','SYS','SYSMAN','SYSTEM', 'TSMSYS','WK_TEST','WKSYS', 'WKPROXY','WMSYS','XDB','APEX_040000', 'APEX_PUBLIC_USER','DIP', 'FLOWS_30000','FLOWS_FILES','MDDATA', 'ORACLE_OCM','SPATIAL_CSW_ADMIN_USR', 'SPATIAL_WFS_ADMIN_USR', 'XS$NULL','PUBLIC');",
+                    "options": [],
+                    "before": [
+                        "SET SERVEROUT  OFF",  // override
+                        "SET NULL       ''",   // override
+                        "SET HEADING    OFF",
+                        "SET FEEDBACK   OFF"
+                    ]
                 },
-                "explain plan": {
-                    "query": "explain {0};",
-                    "options": ["-f", "--table"],
-                    "format" : "|%s|"
+                "functions": {
+                    "query": "select case when object_type = 'PACKAGE' then object_name||'.'||procedure_name else owner || '.' || object_name end || '()' as obj from all_procedures where object_type in ('FUNCTION','PROCEDURE','PACKAGE') and not (object_type = 'PACKAGE' and procedure_name is null) and owner = sys_context('USERENV', 'CURRENT_SCHEMA');",
+                    "options": [],
+                    "before": [
+                        "SET SERVEROUT  OFF",  // override
+                        "SET NULL       ''",   // override
+                        "SET HEADING    OFF",
+                        "SET FEEDBACK   OFF"
+                    ]
                 }
             }
         },
+
+        "sqlite": {
+            "options": [],
+            "before": [],
+            "after": [],
+            "args": "\"{database}\"",
+            "queries": {
+                "execute": {
+                    "options": ["-column", "-header", "-bail"]
+                },
+                "show records": {
+                    "query": "select * from \"{0}\" limit {1};",
+                    "options": ["-column", "-header"]
+                },
+                "explain plan": {
+                    "query": "EXPLAIN QUERY PLAN {0};",
+                    "options": ["-column", "-header", "-bail"]
+                },
+                "desc table": {
+                    "query": ".schema \"{0}\"",
+                    "options": ["-column", "-header"]
+                },
+                "desc" : {
+                    "query": "SELECT name FROM sqlite_master WHERE type='table';",
+                    "options": ["-noheader"],
+                    "before": [
+                        ".headers off"
+                    ]
+                }
+            }
+        },
+
         "vertica": {
             "options": [],
             "before" : [],
-            "args": "-h {host} -p {port} -U \"{username}\" -w \"{password}\" -d \"{database}\"",
+            "after": [],
+            "args": "-h \"{host}\" -p {port} -U \"{username}\" -w \"{password}\" -d \"{database}\"",
             "queries": {
-                "desc" : {
-                    "query": "\\dt",
-                    "options": ["-t"],
-                    "format" : "|%s|"
-                },
-                "desc table": {
-                    "query": "\\d %s",
-                    "options": [],
-                    "format" : "|%s|"
+                "execute": {
+                    "options": []
                 },
                 "show records": {
-                    "query": "select * from {0} limit {1}",
-                    "options": [],
-                    "format" : "|%s|"
+                    "query": "select * from {0} limit {1};",
+                    "options": []
+                },
+                "desc table": {
+                    "query": "\\d {0}",
+                    "options": []
                 },
                 "explain plan": {
                     "query": "explain {0};",
-                    "options": [],
-                    "format" : "|%s|"
+                    "options": []
+                },
+                "desc" : {
+                    "query": "select quote_ident(table_schema) || '.' || quote_ident(table_name) as obj from v_catalog.tables where is_system_table = false;",
+                    "options": ["--tuples-only", "--no-vsqlrc"]
+                },
+                "columns": {
+                    "query": "select quote_ident(table_name) || '.' || quote_ident(column_name) as obj from v_catalog.columns where is_system_table = false order by table_name, ordinal_position;",
+                    "options": ["--tuples-only", "--no-vsqlrc"]
                 }
             }
         },
-        "sqsh": {
+
+        "firebird": {
             "options": [],
-            "before": ["\\set semicolon_cmd=\"\\go -mpretty -l\""],
-            "args": "-S {host}:{port} -U\"{username}\" -P\"{password}\" -D{database}",
+            "before": [],
+            "after": [],
+            "args": "-pagelength 10000 -u \"{username}\" -p \"{password}\" \"{host}/{port}:{database}\"",
             "queries": {
-                "desc": {
-                    "query": "select table_name from information_schema.tables order by 1;",
-                    "before" :["\\set semicolon_cmd=\"\\go -mpretty -l -h -f\""],
+                "execute": {
                     "options": [],
-                    "format": "|%s|"
+                    "before": [
+                        "set bail on;",
+                        "set count on;"
+                    ]
+                },
+                "show records": {
+                    "query": "select first {1} * from {0};",
+                    "options": [],
+                    "before": [
+                        "set bail off;",
+                        "set count on;"
+                    ]
                 },
                 "desc table": {
-                    "query": "exec sp_columns \"%s\";",
+                    "query": "show table {0}; \n show view {0};",
+                    "before": [
+                        "set bail off;"
+                    ]
+                },
+                "desc function": {
+                    "query": "show procedure {0};",
+                    "before": [
+                        "set bail off;"
+                    ]
+                },
+                "explain plan": {
+                    "query": "{0};",
+                    "before": [
+                        "set bail on;",
+                        "set count on;",
+                        "set plan on;",
+                        "set stats on;"
+                    ]
+                },
+                "desc" : {
+                    "query": "select case when upper(rdb$relation_name) = rdb$relation_name then trim(rdb$relation_name) else '\"' || trim(rdb$relation_name) || '\"' end as obj from rdb$relations where (rdb$system_flag is null or rdb$system_flag = 0);",
+                    "before": [
+                        "set bail off;",
+                        "set heading off;",
+                        "set count off;",
+                        "set stats off;"
+                    ]
+                },
+                "columns": {
+                    "query": "select case when upper(f.rdb$relation_name) = f.rdb$relation_name then trim(f.rdb$relation_name) else '\"' || trim(f.rdb$relation_name) || '\"' end || '.' || case when upper(f.rdb$field_name) = f.rdb$field_name then trim(f.rdb$field_name) else '\"' || trim(f.rdb$field_name) || '\"' end as obj from rdb$relation_fields f join rdb$relations r on f.rdb$relation_name = r.rdb$relation_name where (r.rdb$system_flag is null or r.rdb$system_flag = 0) order by f.rdb$relation_name, f.rdb$field_position;",
+                    "before": [
+                        "set bail off;",
+                        "set heading off;",
+                        "set count off;",
+                        "set stats off;"
+                    ]
+                },
+                "functions": {
+                    "query": "select case when upper(rdb$procedure_name) = rdb$procedure_name then trim(rdb$procedure_name) else '\"' || trim(rdb$procedure_name) || '\"' end || '()' as obj from rdb$procedures where (rdb$system_flag is null or rdb$system_flag = 0);",
+                    "before": [
+                        "set bail off;",
+                        "set heading off;",
+                        "set count off;",
+                        "set stats off;"
+                    ]
+                }
+            }
+        },
+
+        "sqsh": {
+            "options": [],
+            "before": [],
+            "after": [],
+            "args": "-S {host}:{port} -U\"{username}\" -P\"{password}\" -D{database}",
+            "queries": {
+                "execute": {
                     "options": [],
-                    "before": ["\\set semicolon_cmd=\"\\go -mpretty -l -h -f\""],
-                    "format": "|%s|"
+                    "before": ["\\set semicolon_cmd=\"\\go -mpretty -l\""]
+                },
+                "desc": {
+                    "query": "select concat(table_schema, '.', table_name) from information_schema.tables order by table_name;",
+                    "options": [],
+                    "before" :["\\set semicolon_cmd=\"\\go -mpretty -l -h -f\""]
+                },
+                "columns": {
+                    "query": "select concat(table_name, '.', column_name) from information_schema.columns order by table_name, ordinal_position;",
+                    "options": [],
+                    "before" :["\\set semicolon_cmd=\"\\go -mpretty -l -h -f\""]
+                },
+                "desc table": {
+                    "query": "exec sp_columns \"{0}\";",
+                    "options": [],
+                    "before": ["\\set semicolon_cmd=\"\\go -mpretty -l -h -f\""]
                 },
                 "show records": {
                     "query": "select top {1} * from \"{0}\";",
                     "options": [],
-                    "before": ["\\set semicolon_cmd=\"\\go -mpretty -l -h -f\""],
-                    "format": "|%s|"
-                }
-            }
-        },
-        "sqlite": {
-            "options": ["-column", "-noheader"],
-            "before": [".headers on"],
-            "args": "\"{database}\"",
-            "queries": {
-                "desc" : {
-                    "query": ".headers off\nSELECT '|' || name || '|' FROM sqlite_master WHERE type='table';",
-                    "options": [],
-                    "format" : "|%s|"
-                },
-                "desc table": {
-                    "query": ".schema \"%s\"",
-                    "options": ["-column"],
-                    "format" : "%s"
-                },
-                "show records": {
-                    "query": "select * from \"{0}\" limit {1};",
-                    "options": ["-column"],
-                    "format" : "|%s|"
-                },
-                "explain plan": {
-                    "query": "EXPLAIN QUERY PLAN {0};",
-                    "options": ["-column"],
-                    "format" : "|%s|"
-                }
-            }
-        },
-        "firebird": {
-            "options": [],
-            "before": [],
-            "args": "-u \"{username}\" -p \"{password}\" \"{host}/{port}:{database}\"",
-            "queries": {
-                "desc" : {
-                    "query": "select '|' || rdb$relation_name || '|' from rdb$relations where rdb$view_blr is null and (rdb$system_flag is null or rdb$system_flag = 0);",
-                    "options": [],
-                    "format" : "|%s|"
-                },
-                "desc table": {
-                    "query": "show table \"%s\";",
-                    "options": [],
-                    "format" : "|%s|"
-                },
-                "show records": {
-                    "query": "select first 100 * from \"%s\";",
-                    "options": [],
-                    "format" : "|%s|"
+                    "before": ["\\set semicolon_cmd=\"\\go -mpretty -l\""]
                 }
             }
         }

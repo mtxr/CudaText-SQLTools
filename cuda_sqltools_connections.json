@@ -1,14 +1,89 @@
 {
-    "connections": {
-         // "Connection name": {         // Connection name, used in menu (Display name)
-         //     "database" : "DATABASE",
-         //     "host"     : "HOSTNAME",
-         //     "port"     : "PORT",
-         //     "type"     : "pgsql",    // SGDB to use: (mysql, pgsql, oracle, vertica)
-         //     "username" : "USERNAME",
-         //     "password" : null        // (if you are using postgresql, you must setup a pgpass file and set it to null)
-         //     "encoding" : null        // Your DB encodings. Default: utf-8
-         // },
+  "connections": {
+  /*
+    "Generic Template": {      // Connection name, used in menu (Display name)
+      "type"     : "pgsql",    // DB type: (mysql, pgsql, oracle, vertica, sqlite, firebird, sqsh)
+      "host"     : "HOSTNAME", // DB host to connect to
+      "port"     :  PORT,      // DB port
+      "database" : "DATABASE", // DB name (for SQLite this is the path to DB file)
+      "username" : "USERNAME", // DB username
+      "password" : "PASSWORD", // DB password (see RDMBS specific comments below)
+      "encoding" : "utf-8"     // DB encoding. Default: utf-8
     },
-    "default": null
+    "Connection MySQL": {
+      "type"    : "mysql",
+      "host"    : "127.0.0.1",
+      "port"    :  3306,
+      "database": "dbname",
+      "username": "user",
+      // use of password for MySQL is not recommended (use "defaults-extra-file" or "login-path")
+      "password": "password",  // you will get a security warning in the output
+      // "defaults-extra-file": "/path/to/defaults_file_with_password",  // use [client] or [mysql] section
+      // "login-path": "your_login_path",  // login path in your ".mylogin.cnf"
+      "default-character-set": "utf8",
+      "encoding": "utf-8"
+    },
+    "Connection PostgreSQL": {
+      "type"    : "pgsql",
+      "host"    : "127.0.0.1",
+      "port"    :  5432,
+      "database": "dbname",
+      "username": "anotheruser",
+      // password is optional (setup "pgpass.conf" file instead)
+      "password": "password",
+      "encoding": "utf-8"
+    },
+    "Connection Oracle": {
+      "type"    : "oracle",
+      "host"    : "127.0.0.1",
+      "port"    :  1521,
+      "database": "dbname",
+      "username": "anotheruser",
+      "password": "password",
+      "service" : "servicename",
+      // nls_lang is optional
+      "nls_lang": "american_america.al32utf8",
+      "encoding": "utf-8"
+    },
+    "Connection MSSQL": {
+      "type"    : "mssql",
+      // use either ("host", "port") and remove "instance"
+      // or ("host", "instance") and remove "port"
+      "host"    : "localhost",
+      "instance": "SQLEXPRESS",
+      // "port"    :  1433,
+      // "username" and "password" are optional (remove if not needed)
+      "username": "sa",
+      "password": "password",
+      "database": "sample",
+      "encoding": "utf-8"
+    },
+    "Connection SQLite": {
+      "type"    : "sqlite",
+      // note the forward slashes in path
+      "database": "c:/sqlite/sample_db/chinook.db",
+      "encoding": "utf-8"
+    },
+    "Connection Vertica": {
+      "type"    : "vertica",
+      "host"    : "localhost",
+      "port"    :  5433,
+      "username": "anotheruser",
+      "password": "password",
+      "database": "dbname",
+      "encoding": "utf-8"
+    },
+    "Connection Firebird": {
+      "type"    : "firebird",
+      "host"    : "localhost",
+      "port"    :  3050,
+      "username": "sysdba",
+      "password": "password",
+      // note the forward slashes (if path is used)
+      "database": "c:/firebird/examples/empbuild/employee.fdb",
+      "encoding": "utf-8"
+    }
+  */
+  },
+  "default": null
 }
