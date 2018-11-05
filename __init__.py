@@ -278,9 +278,9 @@ class Command:
                 return
 
         if not ST.conn:
-            ST.selectConnection(tablesCallback=lambda: ST.conn.explainPlan(text, output))
+            ST.selectConnection(tablesCallback=lambda: ST.conn.explainPlan([text], output))
         else:
-            ST.conn.explainPlan(text, output)
+            ST.conn.explainPlan([text], output)
 
 
     def formatQuery(self):
