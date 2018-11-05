@@ -175,7 +175,10 @@ class ST:
 
         menu = []
         for conn in ST.connectionList.values():
-            menu.append('\t'.join([conn.name, conn._info()]))
+            menu.append(
+                conn.name+'\t'+
+                conn.info()
+                )
         menu.sort()
 
         selected = dlg_menu(MENU_LIST, '\n'.join(menu))
