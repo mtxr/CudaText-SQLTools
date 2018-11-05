@@ -2,7 +2,7 @@ __version__ = "v0.6.0"
 
 import os
 
-# import cudatext api functions
+# import CudaText api
 from cudatext import *
 import cudatext_cmd as cmds
 
@@ -181,25 +181,25 @@ class ST:
                 )
         menu.sort()
 
-        selected = dlg_menu(MENU_LIST, '\n'.join(menu))
+        selected = dlg_menu(MENU_LIST, menu)
         ST.setConnection(selected, menu, tablesCallback, columnsCallback, functionsCallback)
 
     @staticmethod
     def selectTable(callback):
         if len(ST.tables) == 0:
-            msg_box('Your database has no tables.', MB_OK + MB_ICONWARNING)
+            msg_box('Your database has no tables', MB_OK + MB_ICONWARNING)
             return
 
-        selected = dlg_menu(MENU_LIST, '\n'.join(ST.tables))
+        selected = dlg_menu(MENU_LIST, ST.tables)
         callback(selected)
 
     @staticmethod
     def selectFunction(callback):
         if not ST.functions:
-            msg_box('Your database has no functions.', MB_OK + MB_ICONWARNING)
+            msg_box('Your database has no functions', MB_OK + MB_ICONWARNING)
             return
 
-        selected = dlg_menu(MENU_LIST, '\n'.join(ST.functions))
+        selected = dlg_menu(MENU_LIST, ST.functions)
         callback(selected)
 
 
@@ -331,7 +331,7 @@ class Command:
             msg_status('SQL Tools: History is empty')
             return
 
-        selected = dlg_menu(MENU_LIST, '\n'.join(history.all()))
+        selected = dlg_menu(MENU_LIST, history.all())
         if selected is None:
             return None
         return ST.conn.execute(history.get(selected), output)
@@ -361,7 +361,7 @@ class Command:
             options.append('\t'.join([str(alias), str(query)]))
         options.sort()
 
-        selected = dlg_menu(MENU_LIST, '\n'.join(options))
+        selected = dlg_menu(MENU_LIST, options)
         if selected is None:
             return None
 
@@ -377,7 +377,7 @@ class Command:
 
         queriesList = queries.all()
         if not queriesList:
-            msg_box('No saved queries.', MB_OK + MB_ICONWARNING)
+            msg_status('SQL Tools: No saved queries')
             return
 
         options = []
@@ -385,7 +385,7 @@ class Command:
             options.append('\t'.join([str(alias), str(query)]))
         options.sort()
 
-        selected = dlg_menu(MENU_LIST, '\n'.join(options))
+        selected = dlg_menu(MENU_LIST, options)
         if selected is None:
             return None
         return queries.delete(options[selected].split('\t')[0])
