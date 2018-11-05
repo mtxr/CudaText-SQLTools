@@ -1,4 +1,4 @@
-__version__ = "v0.5.2"
+__version__ = "v0.6.0"
 
 import os
 
@@ -8,7 +8,6 @@ import cudatext_cmd as cmds
 
 # import SQLTools api
 from .SQLToolsAPI import Utils
-from .SQLToolsAPI.Log import Log, Logger
 from .SQLToolsAPI.Storage import Storage, Settings
 from .SQLToolsAPI.Connection import Connection
 from .SQLToolsAPI.History import History
@@ -29,6 +28,9 @@ history                      = None
 OUTPUT_TO_FILE = 'sqltools_file_output'
 
 
+def _log(s):
+    print('SQL Tools:', s)
+
 def startPlugin():
     global USER_FOLDER, DEFAULT_FOLDER, SETTINGS_FILENAME, SETTINGS_FILENAME_DEFAULT, CONNECTIONS_FILENAME, CONNECTIONS_FILENAME_DEFAULT, QUERIES_FILENAME, QUERIES_FILENAME_DEFAULT, settings, queries, connections, history
 
@@ -47,13 +49,10 @@ def startPlugin():
     connections = Settings(CONNECTIONS_FILENAME, default=CONNECTIONS_FILENAME_DEFAULT)
     history     = History(settings.get('history_size', 100))
 
-    Logger.setPackageVersion(__version__)
-    Logger.setPackageName('SQLTools')
-    Logger.setLogging(settings.get('debug', True))
     Connection.setTimeout(settings.get('thread_timeout', 5000))
     Connection.setHistoryManager(history)
 
-    Log("Plugin loaded")
+    _log("Plugin loaded")
 
 
 def getConnections():
@@ -70,7 +69,7 @@ def loadDefaultConnection():
     default = connections.get('default', None)
     if not default:
         return
-    Log('Default connection set to: %s' % default)
+    _log('Default connection set to: %s' % default)
     return default
 
 
@@ -128,7 +127,7 @@ class ST:
             ST.conn = ST.connectionList.get(default)
             ST.loadConnectionData()
         except Exception:
-            Log("Invalid connection setted")
+            _log("Invalid connection setted")
 
     @staticmethod
     def loadConnectionData(tablesCallback=None, columnsCallback=None, functionsCallback=None):
@@ -164,7 +163,7 @@ class ST:
 
         ST.loadConnectionData(tablesCallback, columnsCallback, functionsCallback)
 
-        Log('Connection {0} selected'.format(ST.conn))
+        _log('Connection {0} selected'.format(ST.conn))
 
     @staticmethod
     def selectConnection(tablesCallback=None, columnsCallback=None, functionsCallback=None):

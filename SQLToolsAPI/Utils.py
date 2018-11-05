@@ -9,7 +9,7 @@ dirpath = os.path.join(os.path.dirname(__file__), 'lib')
 if dirpath not in sys.path:
     sys.path.append(dirpath)
 
-from sqlparse import format
+import sqlparse
 
 # Regular expression for comments
 comment_re = re.compile(
@@ -56,17 +56,17 @@ def saveJson(content, filename):
 def getResultAsList(results):
     resultList = []
     for result in results.splitlines():
-        try:
-            resultList.append(result.split('|')[1].strip())
-        except IndexError:
-            pass
-
+        lineResult = ''
+        for element in result.strip('|').split('|'):
+            lineResult += element.strip()
+        if lineResult:
+            resultList.append(lineResult)
     return resultList
 
 
 def formatSql(raw, settings):
     try:
-        result = format(raw, **settings)
+        result = sqlparse.format(raw, **settings)
 
         return result
     except Exception:

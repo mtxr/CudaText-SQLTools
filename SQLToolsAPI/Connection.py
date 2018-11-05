@@ -1,134 +1,193 @@
 import shutil
 import shlex
+import codecs
+import logging
 import sqlparse
 
-from .Log import Log
 from . import Utils as U
 from . import Command as C
 
+logger = logging.getLogger(__name__)
 
-class Connection:
-    history = None
-    settings = None
-    rowsLimit = None
-    options = None
+
+def _encoding_exists(enc):
+    try:
+        codecs.lookup(enc)
+    except LookupError:
+        return False
+    return True
+
+
+class Connection(object):
+    DB_CLI_NOT_FOUND_MESSAGE = """DB CLI '{0}' could not be found.
+Please set the path to DB CLI '{0}' binary in your SQLTools settings before continuing.
+Example of "cli" section in SQLTools.sublime-settings:
+    /* ...  (note the use of forward slashes) */
+    "cli" : {{
+        "mysql"   : "c:/Program Files/MySQL/MySQL Server 5.7/bin/mysql.exe",
+        "pgsql"   : "c:/Program Files/PostgreSQL/9.6/bin/psql.exe"
+    }}
+You might need to restart the editor for settings to be refreshed."""
+
     name = None
+    options = None
+    settings = None
     type = None
-    database = None
     host = None
     port = None
+    database = None
     username = None
-    encoding = None
     password = None
-    service = None
+    encoding = None
     safe_limit = None
     show_query = None
+    rowsLimit = None
+    history = None
+    timeout = None
 
-    def __init__(self, name, options, settings={}, commandClass='ThreadCommand'):
+    def __init__(self, name, options, settings=None, commandClass='ThreadCommand'):
         self.Command = getattr(C, commandClass)
 
-        self.cli = settings.get('cli')[options['type']]
-        cli_path = shutil.which(self.cli)
+        self.name = name
+        self.options = options
 
-        if cli_path is None:
-            Log((
-                "'{0}' could not be found.\n\n" +
-                "Please set the '{0}' path in your SQLTools settings " +
-                "before continue.").format(self.cli))
-            return
+        if settings is None:
+            settings = {}
+        self.settings = settings
 
-        self.settings  = settings
-        self.rowsLimit = settings.get('show_records', {}).get('limit', 50)
-        self.options   = options
-        self.name      = name
-        self.type      = options.get('type', None)
-        self.database  = options.get('database', None)
-        self.host      = options.get('host', None)
-        self.port      = options.get('port', None)
-        self.username  = options.get('username', None)
-        self.encoding  = options.get('encoding', None)
-        self.password  = options.get('password', None)
-        self.service   = options.get('service', None)
+        self.type       = options.get('type', None)
+        self.host       = options.get('host', None)
+        self.port       = options.get('port', None)
+        self.database   = options.get('database', None)
+        self.username   = options.get('username', None)
+        self.password   = options.get('password', None)
+        self.encoding   = options.get('encoding', 'utf-8')
+        self.encoding   = self.encoding or 'utf-8'  # defaults to utf-8
+        if not _encoding_exists(self.encoding):
+            self.encoding = 'utf-8'
+
         self.safe_limit = settings.get('safe_limit', None)
-        self.show_query = settings.get('show_query', None)
+        self.show_query = settings.get('show_query', False)
+        self.rowsLimit  = settings.get('show_records', {}).get('limit', 50)
+        self.useStreams = settings.get('use_streams', False)
+        self.cli        = settings.get('cli')[options['type']]
+
+        cli_path = shutil.which(self.cli)
+        if cli_path is None:
+            logger.info(self.DB_CLI_NOT_FOUND_MESSAGE.format(self.cli))
+            raise FileNotFoundError(self.DB_CLI_NOT_FOUND_MESSAGE.format(self.cli))
 
     def __str__(self):
         return self.name
 
-    def _info(self):
+    def info(self):
         return 'DB: {0}, Connection: {1}@{2}:{3}'.format(
             self.database, self.username, self.host, self.port)
 
-    def getTables(self, callback):
-        query = self.getOptionsForSgdbCli()['queries']['desc']['query']
+    def runInternalNamedQueryCommand(self, queryName, callback):
+        query = self.getNamedQuery(queryName)
+        if not query:
+            return
+
+        queryToRun = self.buildNamedQuery(queryName, query)
+        args = self.buildArgs(queryName)
+        env = self.buildEnv()
 
         def cb(result):
             callback(U.getResultAsList(result))
 
-        self.Command.createAndRun(self.builArgs('desc'), query, cb)
+        self.Command.createAndRun(args=args,
+                                  env=env,
+                                  callback=cb,
+                                  query=queryToRun,
+                                  encoding=self.encoding,
+                                  silenceErrors=True,
+                                  stream=False)
+
+    def getTables(self, callback):
+        self.runInternalNamedQueryCommand('desc', callback)
 
     def getColumns(self, callback):
-
-        def cb(result):
-            callback(U.getResultAsList(result))
-
-        try:
-            query = self.getOptionsForSgdbCli()['queries']['columns']['query']
-            self.Command.createAndRun(self.builArgs('columns'), query, cb)
-        except Exception:
-            pass
+        self.runInternalNamedQueryCommand('columns', callback)
 
     def getFunctions(self, callback):
+        self.runInternalNamedQueryCommand('functions', callback)
 
-        def cb(result):
-            callback(U.getResultAsList(result))
+    def runFormattedNamedQueryCommand(self, queryName, formatValues, callback):
+        query = self.getNamedQuery(queryName)
+        if not query:
+            return
 
-        try:
-            query = self.getOptionsForSgdbCli()['queries']['functions']['query']
-            self.Command.createAndRun(self.builArgs(
-                'functions'), query, cb)
-        except Exception:
-            pass
+        # added for compatibility with older format string
+        query = query.replace("%s", "{0}", 1)
+        query = query.replace("%s", "{1}", 1)
+
+        if isinstance(formatValues, tuple):
+            query = query.format(*formatValues)  # unpack the tuple
+        else:
+            query = query.format(formatValues)
+
+        queryToRun = self.buildNamedQuery(queryName, query)
+        args = self.buildArgs(queryName)
+        env = self.buildEnv()
+        self.Command.createAndRun(args=args,
+                                  env=env,
+                                  callback=callback,
+                                  query=queryToRun,
+                                  encoding=self.encoding,
+                                  timeout=self.timeout,
+                                  silenceErrors=False,
+                                  stream=False)
 
     def getTableRecords(self, tableName, callback):
-        query = self.getOptionsForSgdbCli()['queries']['show records']['query'].format(tableName, self.rowsLimit)
-        queryToRun = '\n'.join(self.getOptionsForSgdbCli()['before'] + [query])
-        self.Command.createAndRun(self.builArgs('show records'), queryToRun, callback)
+        # in case we expect multiple values pack them into tuple
+        formatValues = (tableName, self.rowsLimit)
+        self.runFormattedNamedQueryCommand('show records', formatValues, callback)
 
     def getTableDescription(self, tableName, callback):
-        query = self.getOptionsForSgdbCli()['queries']['desc table']['query'] % tableName
-        queryToRun = '\n'.join(self.getOptionsForSgdbCli()['before'] + [query])
-        self.Command.createAndRun(self.builArgs('desc table'), queryToRun, callback)
+        self.runFormattedNamedQueryCommand('desc table', tableName, callback)
 
     def getFunctionDescription(self, functionName, callback):
-        query = self.getOptionsForSgdbCli()['queries']['desc function'][
-            'query'] % functionName
-        queryToRun = '\n'.join(self.getOptionsForSgdbCli()['before'] + [query])
-        self.Command.createAndRun(self.builArgs('desc function'), queryToRun, callback)
+        self.runFormattedNamedQueryCommand('desc function', functionName, callback)
 
     def explainPlan(self, queries, callback):
-        try:
-            queryFormat = self.getOptionsForSgdbCli()['queries']['explain plan']['query']
-        except KeyError:
-            return # do nothing, if DBMS has no support for explain plan
+        queryName = 'explain plan'
+        explainQuery = self.getNamedQuery(queryName)
+        if not explainQuery:
+            return
 
-        stripped_queries = [
-            queryFormat.format(query.strip().strip(";"))
+        strippedQueries = [
+            explainQuery.format(query.strip().strip(";"))
             for rawQuery in queries
             for query in filter(None, sqlparse.split(rawQuery))
         ]
-        queryToRun = '\n'.join(self.getOptionsForSgdbCli()['before'] + stripped_queries)
-        self.Command.createAndRun(self.builArgs('explain plan'), queryToRun, callback)
+        queryToRun = self.buildNamedQuery(queryName, strippedQueries)
+        args = self.buildArgs(queryName)
+        env = self.buildEnv()
+        self.Command.createAndRun(args=args,
+                                  env=env,
+                                  callback=callback,
+                                  query=queryToRun,
+                                  encoding=self.encoding,
+                                  timeout=self.timeout,
+                                  silenceErrors=False,
+                                  stream=self.useStreams)
 
-    def execute(self, queries, callback):
-        queryToRun = ''
+    def execute(self, queries, callback, stream=None):
+        queryName = 'execute'
 
-        for query in self.getOptionsForSgdbCli()['before']:
-            queryToRun += query + "\n"
+        # if not explicitly overriden, use the value from settings
+        if stream is None:
+            stream = self.useStreams
 
         if isinstance(queries, str):
             queries = [queries]
 
+        # add original (umodified) queries to the history
+        if self.history:
+            self.history.add('\n'.join(queries))
+
+        processedQueriesList = []
         for rawQuery in queries:
             for query in sqlparse.split(rawQuery):
                 if self.safe_limit:
@@ -144,43 +203,151 @@ class Connection:
                             if (query.strip()[-1:] == ';'):
                                 query = query.strip()[:-1]
                             query += " LIMIT {0};".format(self.safe_limit)
-                queryToRun += query + "\n"
+                processedQueriesList.append(query)
 
-        Log("Query: " + queryToRun)
+        queryToRun = self.buildNamedQuery(queryName, processedQueriesList)
+        args = self.buildArgs(queryName)
+        env = self.buildEnv()
 
-        if Connection.history:
-            Connection.history.add(queryToRun)
+        logger.debug("Query: %s", str(queryToRun))
 
-        self.Command.createAndRun(self.builArgs(), queryToRun, callback, options={'show_query': self.show_query})
+        self.Command.createAndRun(args=args,
+                                  env=env,
+                                  callback=callback,
+                                  query=queryToRun,
+                                  encoding=self.encoding,
+                                  options={'show_query': self.show_query},
+                                  timeout=self.timeout,
+                                  silenceErrors=False,
+                                  stream=stream)
 
-    def builArgs(self, queryName=None):
+    def getNamedQuery(self, queryName):
+        if not queryName:
+            return None
+
+        cliOptions = self.getOptionsForSgdbCli()
+        return cliOptions.get('queries', {}).get(queryName, {}).get('query')
+
+    def buildNamedQuery(self, queryName, queries):
+        if not queryName:
+            return None
+
+        if not queries:
+            return None
+
+        cliOptions = self.getOptionsForSgdbCli()
+        beforeCli = cliOptions.get('before')
+        afterCli = cliOptions.get('after')
+        beforeQuery = cliOptions.get('queries', {}).get(queryName, {}).get('before')
+        afterQuery = cliOptions.get('queries', {}).get(queryName, {}).get('after')
+
+        # sometimes we preprocess the raw queries from user, in that case we already have a list
+        if type(queries) is not list:
+            queries = [queries]
+
+        builtQueries = []
+        if beforeCli is not None:
+            builtQueries.extend(beforeCli)
+        if beforeQuery is not None:
+            builtQueries.extend(beforeQuery)
+        if queries is not None:
+            builtQueries.extend(queries)
+        if afterQuery is not None:
+            builtQueries.extend(afterQuery)
+        if afterCli is not None:
+            builtQueries.extend(afterCli)
+
+        # remove empty list items
+        builtQueries = list(filter(None, builtQueries))
+
+        return '\n'.join(builtQueries)
+
+    def buildArgs(self, queryName=None):
         cliOptions = self.getOptionsForSgdbCli()
         args = [self.cli]
 
-        if len(cliOptions['options']) > 0:
-            args = args + cliOptions['options']
+        # append otional args (if any) - could be a single value or a list
+        optionalArgs = cliOptions.get('args_optional')
+        if optionalArgs:  # only if we have optional args
+            if isinstance(optionalArgs, list):
+                for item in optionalArgs:
+                    formattedItem = self.formatOptionalArgument(item, self.options)
+                    if formattedItem:
+                        args = args + shlex.split(formattedItem)
+            else:
+                formattedItem = self.formatOptionalArgument(optionalArgs, self.options)
+                if formattedItem:
+                    args = args + shlex.split(formattedItem)
 
-        if queryName and len(cliOptions['queries'][queryName]['options']) > 0:
-            args = args + cliOptions['queries'][queryName]['options']
+        # append generic options
+        options = cliOptions.get('options', None)
+        if options:
+            args = args + options
 
-        if isinstance(cliOptions['args'], list):
-            cliOptions['args'] = ' '.join(cliOptions['args'])
+        # append query specific options (if present)
+        if queryName:
+            queryOptions = cliOptions.get('queries', {}).get(queryName, {}).get('options')
+            if queryOptions:
+                if len(queryOptions) > 0:
+                    args = args + queryOptions
 
-        cliOptions = cliOptions['args'].format(**self.options)
-        args = args + shlex.split(cliOptions)
+        # append main args - could be a single value or a list
+        mainArgs = cliOptions['args']
+        if isinstance(mainArgs, list):
+            mainArgs = ' '.join(mainArgs)
 
-        Log('Using cli args ' + ' '.join(args))
+        mainArgs = mainArgs.format(**self.options)
+        args = args + shlex.split(mainArgs)
+
+        logger.debug('CLI args (%s): %s', str(queryName), ' '.join(args))
         return args
+
+    def buildEnv(self):
+        cliOptions = self.getOptionsForSgdbCli()
+        env = dict()
+
+        # append **optional** environment variables dict (if any)
+        optionalEnv = cliOptions.get('env_optional')
+        if optionalEnv:  # only if we have optional args
+            if isinstance(optionalEnv, dict):
+                for var, value in optionalEnv.items():
+                    formattedValue = self.formatOptionalArgument(value, self.options)
+                    if formattedValue:
+                        env.update({var: formattedValue})
+
+        # append environment variables dict (if any)
+        staticEnv = cliOptions.get('env')
+        if staticEnv:  # only if we have optional args
+            if isinstance(staticEnv, dict):
+                for var, value in staticEnv.items():
+                    formattedValue = value.format(**self.options)
+                    if formattedValue:
+                        env.update({var: formattedValue})
+
+        logger.debug('CLI environment: %s', str(env))
+        return env
 
     def getOptionsForSgdbCli(self):
         return self.settings.get('cli_options', {}).get(self.type)
 
     @staticmethod
+    def formatOptionalArgument(argument, formatOptions):
+        try:
+            formattedArg = argument.format(**formatOptions)
+        except (KeyError, IndexError):
+            return None
+
+        if argument == formattedArg:  # string not changed after format
+            return None
+        return formattedArg
+
+    @staticmethod
     def setTimeout(timeout):
         Connection.timeout = timeout
-        Log('Connection timeout setted to {0} seconds'.format(timeout))
+        logger.info('Connection timeout set to {0} seconds'.format(timeout))
 
     @staticmethod
     def setHistoryManager(manager):
         Connection.history = manager
-        Log('Connection history defined with max size {0}'.format(manager.getMaxSize()))
+        size = manager.getMaxSize()
+        logger.info('Connection history size is {0}'.format(size))
