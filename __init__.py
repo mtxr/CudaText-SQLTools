@@ -309,7 +309,7 @@ class Command:
 
         if all:
             ed.set_text_all(text)
-            msg_status('SQLTools: formatted all text')
+            msg_status('SQL Tools: formatted all text')
         else:
             x0, y0, x1, y1 = carets[0]
             if (y1 > y0) or ((y1 == y0) and (x1 >= x0)):
@@ -320,7 +320,7 @@ class Command:
             ed.set_caret(x0, y0)
             ed.delete(x0, y0, x1, y1)
             ed.insert(x0, y0, text)
-            msg_status('SQLTools: formatted selection')
+            msg_status('SQL Tools: formatted selection')
 
     def showHistory(self):
         if not ST.conn:
@@ -328,7 +328,7 @@ class Command:
             return
 
         if len(history.all()) == 0:
-            msg_box('History is empty.', MB_OK + MB_ICONWARNING)
+            msg_status('SQL Tools: History is empty')
             return
 
         selected = dlg_menu(MENU_LIST, '\n'.join(history.all()))
@@ -339,7 +339,7 @@ class Command:
     def saveQuery(self):
         text = getSelection()
         if not text:
-            msg_status('Text not selected')
+            msg_status('SQL Tools: Text not selected')
             return
 
         alias = dlg_input('Query alias:', '')
