@@ -295,9 +295,14 @@ class Command:
             text = ed.get_text_all()
             if not text: return
             all = True
+            
+        with_eol = text.endswith('\n')
 
         text = Utils.formatSql(text, settings.get('format', {}))
         if not text: return
+        
+        if with_eol and not text.endswith('\n'):
+            text += '\n'
 
         if all:
             ed.set_text_all(text)
