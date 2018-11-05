@@ -112,10 +112,30 @@ def getOutputPlace():
         return LOG_PANEL_OUTPUT
 
 
-def getSelection():
-    #api always gets string
-    return ed.get_text_sel()
+def get_editor_text():
 
+    s = ed.get_text_sel()
+    if s:
+        return s
+
+    '''
+    // Possible options:
+    //  "file"      - entire file contents
+    //  "paragraph" - text between newlines relative to cursor(s)
+    //  "line"      - current line of cursor(s)
+    "expand_to": "file",
+    '''
+    opt = settings.get('expand_to', 'file')
+    
+    if opt=='file':
+        return ed.get_text_all()
+    elif opt=='line':
+        x0, y0, x1, y1 = ed.get_carets()[0]
+        return ed.get_text_line(y0)
+    else:
+        _log('Option "expand_to" value "%s" not supported'%opt)
+        return ''
+    
 
 class ST:
     connectionList = None
@@ -302,14 +322,10 @@ class Command:
         ST.selectFunction(cb)
 
     def executeQuery(self):
-        text = getSelection()
+        text = get_editor_text()
         if not text:
-            #get current line
-            x0, y0, x1, y1 = ed.get_carets()[0]
-            text = ed.get_text_line(y0)
-            if not text:
-                msg_status('Text not selected/ current line empty')
-                return
+            msg_status('Text not selected') 
+            return
 
         if not ST.conn:
             ST.selectConnection(tablesCallback=lambda: ST.conn.execute(text, output))
@@ -318,14 +334,10 @@ class Command:
 
 
     def explainPlan(self):
-        text = getSelection()
+        text = get_editor_text()
         if not text:
-            #get current line
-            x0, y0, x1, y1 = ed.get_carets()[0]
-            text = ed.get_text_line(y0)
-            if not text:
-                msg_status('Text not selected/ current line empty')
-                return
+            msg_status('Text not selected') 
+            return
 
         if not ST.conn:
             ST.selectConnection(tablesCallback=lambda: ST.conn.explainPlan([text], output))
@@ -339,7 +351,7 @@ class Command:
             msg_status('Need single caret')
             return
 
-        text = getSelection()
+        text = ed.get_text_sel()
         all = False
         if not text:
             text = ed.get_text_all()
@@ -384,9 +396,9 @@ class Command:
         return ST.conn.execute(history.get(selected), output)
 
     def saveQuery(self):
-        text = getSelection()
+        text = get_editor_text()
         if not text:
-            msg_status('SQL Tools: Text not selected')
+            msg_status('Text not selected') 
             return
 
         alias = dlg_input('Query alias:', '')
