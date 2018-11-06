@@ -73,6 +73,12 @@ caption=SQL Tools\List and run saved queries
 method=runSavedQuery
 hotkey=Ctrl+E|Ctrl+A
 
+[item36]
+section=commands
+caption=SQL Tools\List and insert saved queries
+method=insertSavedQuery
+hotkey=
+
 [item37]
 section=commands
 caption=SQL Tools\Remove saved query

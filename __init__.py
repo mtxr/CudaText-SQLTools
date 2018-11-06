@@ -124,6 +124,11 @@ def toNewTab(content, discard=None):
     ed.set_text_all(str(content))
 
 
+def editor_insert(text):
+    
+    ed.cmd(cmds.cCommand_TextInsert, text=text)
+    
+
 def get_editor_text():
 
     s = ed.get_text_sel()
@@ -450,6 +455,8 @@ class Command:
 
         if mode=='run':
             ST.conn.execute(text, output)
+        elif mode=='insert':
+            editor_insert(text)
         else:
             toNewTab(text, None)
 
@@ -479,6 +486,10 @@ class Command:
     def runSavedQuery(self):
 
         return self.showSavedQueries('run')
+
+    def insertSavedQuery(self):
+
+        return self.showSavedQueries('insert')
 
     def editConnections(self):
 
