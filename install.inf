@@ -101,10 +101,10 @@ method=selectConnection
 
 [item81]
 section=commands
-caption=SQL Tools\Setup connections
+caption=SQL Tools\Edit connections config
 method=editConnections
 
 [item82]
 section=commands
-caption=SQL Tools\Setup plugin
+caption=SQL Tools\Edit main config
 method=editSettings
