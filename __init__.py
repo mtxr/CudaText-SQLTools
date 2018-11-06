@@ -117,6 +117,11 @@ def output(content):
         toNewTab(content)
 
 
+def output_title(content):
+
+    output(output_title.title+'\n'+content)
+    
+
 def toNewTab(content, discard=None):
 
     file_open('')
@@ -315,7 +320,9 @@ class Command:
         def cb(selected):
             if selected is None:
                 return None
-            return ST.conn.getTableRecords(ST.tables[selected], output)
+            t = ST.tables[selected]
+            output_title.title = 'Table "%s"'%t
+            return ST.conn.getTableRecords(t, output_title)
 
         ST.selectTable(cb)
 
@@ -328,7 +335,9 @@ class Command:
         def cb(selected):
             if selected is None:
                 return None
-            return ST.conn.getTableDescription(ST.tables[selected], output)
+            t = ST.tables[selected]
+            output_title.title = 'Table "%s"'%t
+            return ST.conn.getTableDescription(t, output_title)
 
         ST.selectTable(cb)
 

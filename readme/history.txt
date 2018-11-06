@@ -1,5 +1,6 @@
 
 2018.11.06
++ show table title for output of "Describe table", "Show table records"
 + add command "Execute entire file"
 + add command "Insert saved query"
 + supported option "focus_on_result"
