@@ -46,13 +46,29 @@ def startPlugin():
     QUERIES_FILENAME             = os.path.join(USER_FOLDER, "cuda_sqltools_savedqueries.json")
     QUERIES_FILENAME_DEFAULT     = os.path.join(DEFAULT_FOLDER, "cuda_sqltools_savedqueries.json")
 
-    settings    = Settings(SETTINGS_FILENAME, default=SETTINGS_FILENAME_DEFAULT)
-    queries     = Storage(QUERIES_FILENAME, default=QUERIES_FILENAME_DEFAULT)
-    connections = Settings(CONNECTIONS_FILENAME, default=CONNECTIONS_FILENAME_DEFAULT)
-    history     = History(settings.get('history_size', 100))
+    try:
+        settings = Settings(SETTINGS_FILENAME, default=SETTINGS_FILENAME_DEFAULT)
+    except:
+        settings = None
+        _log('Error parsing '+SETTINGS_FILENAME)
 
-    Connection.setTimeout(settings.get('thread_timeout', 15))
-    Connection.setHistoryManager(history)
+    try:
+        queries = Storage(QUERIES_FILENAME, default=QUERIES_FILENAME_DEFAULT)
+    except:
+        queries = None
+        _log('Error parsing '+QUERIES_FILENAME)
+
+    try:
+        connections = Settings(CONNECTIONS_FILENAME, default=CONNECTIONS_FILENAME_DEFAULT)
+    except:
+        connections = None
+        _log('Error parsing '+CONNECTIONS_FILENAME)
+
+    if settings:
+        history     = History(settings.get('history_size', 100))
+
+        Connection.setTimeout(settings.get('thread_timeout', 15))
+        Connection.setHistoryManager(history)
 
     _log("Plugin loaded")
 
