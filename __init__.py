@@ -234,6 +234,11 @@ class ST:
         selected = menu[selected].split('\t')[0]
         ST.conn = ST.connectionList[selected]
 
+        # clear list of identifiers in case connection is changed
+        ST.tables = []
+        ST.columns = []
+        ST.functions = []
+
         ST.loadConnectionData(tablesCallback, columnsCallback, functionsCallback)
 
         ST.reset_cache(tablesCallback, columnsCallback, functionsCallback)
