@@ -28,12 +28,15 @@ history                      = None
 
 
 def _log(s):
+
     print('SQL Tools:', s)
 
 def msg_er(s):
+
     msg_box(s, MB_OK+MB_ICONWARNING)
 
 def startPlugin():
+
     global USER_FOLDER, DEFAULT_FOLDER, SETTINGS_FILENAME, SETTINGS_FILENAME_DEFAULT, CONNECTIONS_FILENAME, CONNECTIONS_FILENAME_DEFAULT, QUERIES_FILENAME, QUERIES_FILENAME_DEFAULT, settings, queries, connections, history
 
     USER_FOLDER = app_path(APP_DIR_SETTINGS)
@@ -74,6 +77,7 @@ def startPlugin():
 
 
 def getConnections():
+
     connectionsObj = {}
 
     options = connections.get('connections', {})
@@ -86,6 +90,7 @@ def getConnections():
 
 
 def loadDefaultConnection():
+
     default = connections.get('default', None)
     if not default:
         return
@@ -94,8 +99,8 @@ def loadDefaultConnection():
 
 
 def output(content):
-    opt = settings.get('show_result_on_window', False)
 
+    opt = settings.get('show_result_on_window', False)
     if not opt:
         if settings.get('focus_on_result', False):
             ed.cmd(cmds.cmd_ShowPanelOutput_AndFocus)
@@ -113,6 +118,7 @@ def output(content):
 
 
 def toNewTab(content, discard=None):
+
     file_open('')
     ed.set_prop(PROP_TAB_TITLE, 'SQL result')
     ed.set_text_all(str(content))
@@ -278,13 +284,16 @@ class ST:
 
 class Command:
     def __init__(self):
+
         self.on_start(None)
 
     def on_start(self, ed_self):
+
         startPlugin()
         ST.bootstrap()
 
     def selectConnection(self):
+
         ST.selectConnection()
 
     def showRecords(self):
@@ -301,6 +310,7 @@ class Command:
         ST.selectTable(cb)
 
     def describeTable(self):
+
         if not ST.conn:
             ST.selectConnection(tablesCallback=lambda: self.describeTable())
             return
@@ -313,6 +323,7 @@ class Command:
         ST.selectTable(cb)
 
     def describeFunction(self):
+
         if not ST.conn:
             ST.selectConnection(functionsCallback=lambda: self.describeFunction())
             return
@@ -328,6 +339,7 @@ class Command:
         ST.selectFunction(cb)
 
     def executeQuery(self):
+
         text = get_editor_text()
         if not text:
             msg_status('Text not selected')
@@ -340,6 +352,7 @@ class Command:
 
 
     def explainPlan(self):
+
         text = get_editor_text()
         if not text:
             msg_status('Text not selected')
@@ -352,6 +365,7 @@ class Command:
 
 
     def formatQuery(self):
+
         carets = ed.get_carets()
         if len(carets)!=1:
             msg_status('Need single caret')
@@ -388,6 +402,7 @@ class Command:
             msg_status('SQL Tools: formatted selection')
 
     def showHistory(self):
+
         if not ST.conn:
             ST.selectConnection(functionsCallback=lambda: self.showHistory())
             return
@@ -402,6 +417,7 @@ class Command:
         return ST.conn.execute(history.get(selected), output)
 
     def saveQuery(self):
+
         text = get_editor_text()
         if not text:
             msg_status('Text not selected')
@@ -412,6 +428,7 @@ class Command:
             queries.add(alias, text)
 
     def showSavedQueries(self, mode="list"):
+
         if not ST.conn:
             ST.selectConnection(functionsCallback=lambda: self.showSavedQueries(mode))
             return
@@ -437,6 +454,7 @@ class Command:
             toNewTab(text, None)
 
     def deleteSavedQuery(self):
+
         if not ST.conn:
             ST.selectConnection(functionsCallback=lambda: self.deleteSavedQuery())
             return
@@ -459,21 +477,26 @@ class Command:
         return queries.delete(text)
 
     def runSavedQuery(self):
+
         return self.showSavedQueries('run')
 
     def editConnections(self):
+
         file_open(CONNECTIONS_FILENAME)
 
     def editSettings(self):
+
         file_open(SETTINGS_FILENAME)
 
     def refreshConnData(self):
+
         if not ST.conn:
             return
         ST.loadConnectionData()
         _log('Refreshed connection data')
 
     def clearCache(self):
+
         if not ST.conn:
             return
         ST.reset_cache()
