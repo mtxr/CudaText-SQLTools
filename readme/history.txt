@@ -1,5 +1,6 @@
 
 2018.11.06
++ add command "Execute entire file"
 + add command "Insert saved query"
 + supported option "focus_on_result"
 + supported option "clear_output"

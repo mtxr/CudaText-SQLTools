@@ -18,11 +18,17 @@ hotkey=Ctrl+E|Ctrl+E
 
 [item3]
 section=commands
+caption=SQL Tools\Execute entire file
+method=executeFile
+hotkey=
+
+[item5]
+section=commands
 caption=SQL Tools\Explain plan
 method=explainPlan
 hotkey=Ctrl+E|Ctrl+X
 
-[item4]
+[item6]
 section=commands
 caption=SQL Tools\Describe function
 method=describeFunction

@@ -343,11 +343,25 @@ class Command:
         # from "function_name(int)"
         ST.selectFunction(cb)
 
+
     def executeQuery(self):
 
         text = get_editor_text()
         if not text:
             msg_status('Text not selected')
+            return
+
+        if not ST.conn:
+            ST.selectConnection(tablesCallback=lambda: ST.conn.execute(text, output))
+        else:
+            ST.conn.execute(text, output)
+
+
+    def executeFile(self):
+
+        text = ed.get_text_all()
+        if not text:
+            msg_status('Text is empty')
             return
 
         if not ST.conn:
